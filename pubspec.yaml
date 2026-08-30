@@ -27,6 +27,15 @@ dependencies:
   uuid: ^4.5.3
   flutter_svg: ^2.2.4
 
+  # The store-update check: Play's in-app updates on Android, the App Store
+  # version compared against the bundle's on iOS. shared_preferences carries
+  # the "already asked about this version" note, which is not a secret and so
+  # does not belong in flutter_secure_storage.
+  in_app_update: ^4.2.5
+  package_info_plus: ^8.0.2
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.5.3
+
   # livekit_client, firebase_messaging, flutter_callkit_incoming, wakelock_plus,
   # permission_handler and audioplayers arrive with the meeting and call screens
   # (PLAN.md steps 6 and 7). Adding them now would make every build depend on a
