@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/theme.dart';
+import '../data/api_client.dart';
 import '../data/models.dart';
 import '../data/socket.dart';
 import '../state/conversations_cubit.dart';
@@ -28,7 +29,7 @@ class ChatsTab extends StatelessWidget {
               if (state.isEmpty && state.error.isNotEmpty) {
                 return FailureState(
                   message: state.error,
-                  offline: state.offline,
+                  trouble: state.trouble,
                   onRetry: cubit.refresh,
                 );
               }
@@ -83,15 +84,26 @@ class _SocketStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final socket = context.read<AppServices>().socket;
+    final services = context.read<AppServices>();
     return StreamBuilder<SocketStatus>(
-      stream: socket.status,
-      initialData: socket.currentStatus,
+      stream: services.socket.status,
+      initialData: services.socket.currentStatus,
       builder: (context, snapshot) {
         if (snapshot.data != SocketStatus.waiting) {
           return const SizedBox.shrink();
         }
-        return const OfflineStrip();
+        // A socket that is down says only that it is down. Whether that is the phone or
+        // us is a question the phone can answer, and it is the difference between
+        // "check your data" and "we are working on it".
+        return StreamBuilder<bool>(
+          stream: services.reach.changes,
+          initialData: services.reach.hasTransport,
+          builder: (context, transport) => OfflineStrip(
+            trouble: (transport.data ?? true)
+                ? Trouble.unreachable
+                : Trouble.offline,
+          ),
+        );
       },
     );
   }

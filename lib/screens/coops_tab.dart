@@ -23,7 +23,7 @@ class CoopsTab extends StatelessWidget {
         if (state.items.isEmpty && state.error.isNotEmpty) {
           return FailureState(
             message: state.error,
-            offline: state.offline,
+            trouble: state.trouble,
             onRetry: cubit.load,
           );
         }

@@ -13,20 +13,28 @@ class SessionState {
     required this.status,
     this.caller,
     this.notice = '',
+    this.trouble = Trouble.failed,
   });
 
   final SessionStatus status;
   final Caller? caller;
   final String notice;
 
+  /// Only read when [status] is [SessionStatus.unreachable]: it decides whether the
+  /// splash asks the member to turn their data on or tells them we are the ones who
+  /// cannot be reached.
+  final Trouble trouble;
+
   SessionState copyWith({
     SessionStatus? status,
     Caller? caller,
     String? notice,
+    Trouble? trouble,
   }) => SessionState(
     status: status ?? this.status,
     caller: caller ?? this.caller,
     notice: notice ?? this.notice,
+    trouble: trouble ?? this.trouble,
   );
 }
 
@@ -77,7 +85,11 @@ class SessionCubit extends Cubit<SessionState> {
         services.socket.start();
       } else {
         emit(
-          SessionState(status: SessionStatus.unreachable, notice: e.message),
+          SessionState(
+            status: SessionStatus.unreachable,
+            notice: e.message,
+            trouble: e.trouble,
+          ),
         );
       }
     }

@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The platform's action purple, repeated here because the launch window is
-         painted by Android before any Dart runs. -->
-    <color name="brand_purple">#742CE7</color>
+    <!-- The launch window's ground, repeated here because Android paints that window
+         before any Dart runs. Meet's is white with the purple mark, which is the one
+         of the three that is not a dark screen: the wallet and the collector both open
+         on black, and three apps that open identically are three apps a member cannot
+         tell apart on the way in. It is also the colour Meet's own first screen is, so
+         the cold start runs straight into the app with nothing to flash through. -->
+    <color name="launch_ground">#FFFFFF</color>
 	<color name="ic_launcher_background">#742CE7</color>
 </resources>

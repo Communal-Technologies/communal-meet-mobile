@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../core/reachability.dart';
 import '../data/api_client.dart';
 import '../data/local_store.dart';
 import '../data/repositories.dart';
@@ -7,8 +8,12 @@ import '../data/session_store.dart';
 import '../data/socket.dart';
 
 class AppServices {
-  AppServices._(this.session, this.store) {
-    api = ApiClient(session: session, onSessionLost: _onSessionLost);
+  AppServices._(this.session, this.store, this.reach) {
+    api = ApiClient(
+      session: session,
+      onSessionLost: _onSessionLost,
+      reach: reach,
+    );
     socket = MeetSocket(session: session);
     auth = AuthRepository(api);
     chat = ChatRepository(api);
@@ -17,6 +22,7 @@ class AppServices {
 
   final SessionStore session;
   final LocalStore store;
+  final Reachability reach;
 
   late final ApiClient api;
   late final MeetSocket socket;
@@ -32,7 +38,9 @@ class AppServices {
     await session.load();
     final store = LocalStore();
     await store.open();
-    return AppServices._(session, store);
+    final reach = Reachability();
+    await reach.start();
+    return AppServices._(session, store, reach);
   }
 
   Future<void> _onSessionLost() async {

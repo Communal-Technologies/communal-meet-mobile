@@ -274,11 +274,38 @@ Each screen lists **what it is for**, its wireframe, its **states**, its **inter
 
 ### 6.0 Splash
 
-Restores the session and decides where to go. Nothing to see: the mark, centred, on white, with
-no spinner for the first 400ms — a spinner that flashes for 200ms reads as a glitch.
+Restores the session and decides where to go — and says which of the three apps you opened, which
+is the part the first version of this section got wrong. It read "nothing to see", and what shipped
+was a screen nobody could see: purple on a purple launch window, held for one frame.
 
+```
+┌────────────────────────────────────────────┐
+│                                            │
+│                                            │
+│                   ⬤                        │   the purple mark, 116, on white
+│                                            │
+│            Communal Meet                   │   display
+│         Meet your cooperative              │   meta
+│                                            │
+│              ▁▁▁▁▁▁▁▁                      │   primary bar, only after 400ms
+│                                            │
+└────────────────────────────────────────────┘
+```
+
+- **White, with the purple mark.** The same ground as the Android launch window
+  (`launch_ground` `#FFFFFF`) and the same mark (`brand_mark_purple` / `splash_logo.png`), so a
+  cold start is one continuous screen rather than a flash. It is also the one of the three fleet
+  apps that does not open dark — Wallet is black with the purple mark, Collector black with the
+  white mark — so the app is identifiable before a word is read.
+- **Held 1200ms.** A restored session settles in single-digit milliseconds; without a floor the
+  splash is drawn and discarded inside a frame and the app appears to have none.
+- The loader waits **400ms** on top of nothing: a bar that flashes for a fifth of a second reads
+  as a glitch rather than as progress. It never appears on a warm start, and that is correct.
 - Session valid → Home. Session expired but a refresh token exists → refresh, then Home. No
   session → Sign in. Refresh fails → Sign in, with "Your session expired. Please sign in again."
+- Could not settle it at all → the splash keeps the screen and says which of the three troubles it
+  was (§7.6), with **Try again**. This state ignores the 1200ms floor — there is nothing to hold
+  it for.
 - Data: `POST /api/v1/refresh-token` ✅, then `GET /api/meet/v1/me` ✅.
 - Hard rule: the splash never waits on `/spaces` or `/conversations`. Home renders from cache and
   fills in.
@@ -891,6 +918,23 @@ costs a feature outright is the microphone in a call, and even then listening st
 - 404 on a conversation: the same. The server answers "not found" and "not yours" identically on
   purpose, and the app must not try to be cleverer than that.
 - Offline: never an error. A banner, cached content, and a queue.
+
+**"Offline" is a claim about the member's phone, so it is only ever made when the phone makes it.**
+A request that comes back with nothing says only that it did not arrive, which is equally true of a
+phone with no signal and a phone with four bars on a network that does not reach us. Those are
+different problems and only one of them is the member's, so there are three cases and one
+vocabulary — `Trouble`, decided by asking the platform for the transport at the moment the request
+fails:
+
+| | Heading | Body | Where it comes from |
+|---|---|---|---|
+| `offline` | No network on this phone | Turn on mobile data or wifi. | no wifi and no mobile data |
+| `unreachable` | Cannot reach Communal | You are connected to something, but it is not reaching Communal. We keep trying. | a response never arrived |
+| `failed` | That did not load | Something went wrong on our side. | a response arrived and was no good |
+
+The strips are the same three, said short: "No network on this phone", "Reconnecting to Communal",
+"Reconnecting". The transport is **assumed present** until the platform says otherwise, because
+"turn on your data" is the one line a member cannot act on when it is wrong.
 
 ### 7.7 Accessibility
 

@@ -9,24 +9,24 @@ class SpacesState {
     this.items = const [],
     this.loading = true,
     this.error = '',
-    this.offline = false,
+    this.trouble = Trouble.failed,
   });
 
   final List<Space> items;
   final bool loading;
   final String error;
-  final bool offline;
+  final Trouble trouble;
 
   SpacesState copyWith({
     List<Space>? items,
     bool? loading,
     String? error,
-    bool? offline,
+    Trouble? trouble,
   }) => SpacesState(
     items: items ?? this.items,
     loading: loading ?? this.loading,
     error: error ?? this.error,
-    offline: offline ?? this.offline,
+    trouble: trouble ?? this.trouble,
   );
 }
 
@@ -45,7 +45,7 @@ class SpacesCubit extends Cubit<SpacesState> {
         state.copyWith(
           loading: false,
           error: state.items.isEmpty ? e.message : '',
-          offline: e.isOffline,
+          trouble: e.trouble,
         ),
       );
     }

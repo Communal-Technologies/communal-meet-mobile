@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/format.dart';
 import '../core/theme.dart';
+import '../data/api_client.dart';
 import '../data/models.dart';
 import '../state/conversations_cubit.dart';
 import '../state/services.dart';
@@ -130,7 +131,8 @@ class _ThreadViewState extends State<_ThreadView> {
           ),
           body: Column(
             children: [
-              if (state.offline) const OfflineStrip(),
+              if (state.trouble != Trouble.failed)
+                OfflineStrip(trouble: state.trouble),
               Expanded(child: _body(context, state, cubit, me)),
               if (conversation.canPost)
                 Composer(onSend: cubit.send, onChanged: cubit.composerChanged)
@@ -157,7 +159,7 @@ class _ThreadViewState extends State<_ThreadView> {
     if (state.isEmpty && state.error.isNotEmpty) {
       return FailureState(
         message: state.error,
-        offline: state.offline,
+        trouble: state.trouble,
         onRetry: cubit.load,
       );
     }

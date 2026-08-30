@@ -3,6 +3,34 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/format.dart';
 import '../core/theme.dart';
+import '../data/api_client.dart';
+
+/// The copy for each of the three troubles, kept in one place because the splash, every
+/// failed list and the reconnecting strip all have to say the same thing about the same
+/// failure — and the middle one is the whole point of the distinction: a phone with
+/// signal that cannot reach us is our problem, and the heading must not tell the member
+/// to go and fix theirs.
+String troubleHeading(Trouble trouble) => switch (trouble) {
+  Trouble.offline => 'No network on this phone',
+  Trouble.unreachable => 'Cannot reach Communal',
+  Trouble.failed => 'That did not load',
+};
+
+/// What to do about it, for when the failure arrived with no sentence of its own.
+String troubleBody(Trouble trouble) => switch (trouble) {
+  Trouble.offline => 'Turn on mobile data or wifi.',
+  Trouble.unreachable =>
+    'You are connected to something, but it is not reaching Communal. '
+        'We keep trying.',
+  Trouble.failed => 'Something went wrong on our side.',
+};
+
+/// The same three, said in the width of a strip.
+String troubleStrip(Trouble trouble) => switch (trouble) {
+  Trouble.offline => 'No network on this phone',
+  Trouble.unreachable => 'Reconnecting to Communal',
+  Trouble.failed => 'Reconnecting',
+};
 
 class Illustration extends StatelessWidget {
   const Illustration(this.asset, {super.key, this.width = 104, this.tint});
@@ -62,19 +90,21 @@ class FailureState extends StatelessWidget {
     super.key,
     required this.message,
     required this.onRetry,
-    this.offline = false,
+    this.trouble = Trouble.failed,
   });
 
   final String message;
   final VoidCallback onRetry;
-  final bool offline;
+  final Trouble trouble;
 
   @override
   Widget build(BuildContext context) {
     return EmptyState(
-      asset: offline ? 'state_offline.svg' : 'state_error.svg',
-      title: offline ? 'You are offline' : 'That did not load',
-      body: message,
+      asset: trouble == Trouble.failed
+          ? 'state_error.svg'
+          : 'state_offline.svg',
+      title: troubleHeading(trouble),
+      body: message.isEmpty ? troubleBody(trouble) : message,
       action: SizedBox(
         width: 180,
         child: FilledButton(onPressed: onRetry, child: const Text('Try again')),
@@ -84,9 +114,11 @@ class FailureState extends StatelessWidget {
 }
 
 class OfflineStrip extends StatelessWidget {
-  const OfflineStrip({super.key, this.label = 'Offline — reconnecting'});
+  const OfflineStrip({super.key, this.trouble = Trouble.unreachable});
 
-  final String label;
+  final Trouble trouble;
+
+  String get label => troubleStrip(trouble);
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +129,13 @@ class OfflineStrip extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off, size: 15, color: AppColors.warning),
+          Icon(
+            trouble == Trouble.offline
+                ? Icons.signal_wifi_off_rounded
+                : Icons.cloud_off,
+            size: 15,
+            color: AppColors.warning,
+          ),
           const SizedBox(width: 8),
           Text(label, style: AppText.caption.copyWith(color: AppColors.warning)),
         ],

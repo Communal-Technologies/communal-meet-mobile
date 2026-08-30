@@ -19,7 +19,7 @@ class ThreadState {
     this.loadingOlder = false,
     this.hasOlder = true,
     this.error = '',
-    this.offline = false,
+    this.trouble = Trouble.failed,
     this.typing = const [],
     this.readUpTo = 0,
   });
@@ -31,7 +31,7 @@ class ThreadState {
   final bool loadingOlder;
   final bool hasOlder;
   final String error;
-  final bool offline;
+  final Trouble trouble;
   final List<String> typing;
   final int readUpTo;
 
@@ -45,7 +45,7 @@ class ThreadState {
     bool? loadingOlder,
     bool? hasOlder,
     String? error,
-    bool? offline,
+    Trouble? trouble,
     List<String>? typing,
     int? readUpTo,
   }) => ThreadState(
@@ -56,7 +56,7 @@ class ThreadState {
     loadingOlder: loadingOlder ?? this.loadingOlder,
     hasOlder: hasOlder ?? this.hasOlder,
     error: error ?? this.error,
-    offline: offline ?? this.offline,
+    trouble: trouble ?? this.trouble,
     typing: typing ?? this.typing,
     readUpTo: readUpTo ?? this.readUpTo,
   );
@@ -117,7 +117,7 @@ class ThreadCubit extends Cubit<ThreadState> {
           messages: merged,
           loading: false,
           error: '',
-          offline: false,
+          trouble: Trouble.failed,
           hasOlder: page.length >= _pageSize,
         ),
       );
@@ -128,7 +128,7 @@ class ThreadCubit extends Cubit<ThreadState> {
         state.copyWith(
           loading: false,
           error: state.messages.isEmpty ? e.message : '',
-          offline: e.isOffline,
+          trouble: e.trouble,
         ),
       );
     }
@@ -274,7 +274,7 @@ class ThreadCubit extends Cubit<ThreadState> {
       emit(
         state.copyWith(
           pending: _asMessages(await _reloadPending()),
-          offline: e.isOffline,
+          trouble: e.trouble,
         ),
       );
     }

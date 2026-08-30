@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The mark Android 12+ centres on the launch window: the white mark straight onto
-     the brand purple, with no plate behind it, so no icon mask is applied and the
+<!-- The mark Android 12+ centres on the launch window: the purple mark straight onto
+     Meet's white ground, with no plate behind it, so no icon mask is applied and the
      launch window draws exactly what the Dart splash draws.
      The transparent canvas is the padding. The platform crops to the middle 192 of
      the 288dp canvas and scales that back up, so what lands on screen is a little
      over three times the dp declared here — 55dp measures 174px on a 2x phone,
-     the same as the member app's mark. The member app declares this same size in
-     its own splash_mark.xml, so all three stay equal whatever happens to the
-     launcher icon they used to inherit it from. -->
+     the same as the wallet's mark. All three apps declare this same size in their own
+     splash_mark.xml, so they stay equal whatever happens to the launcher icon they
+     used to inherit it from; only the two colours differ. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
@@ -18,6 +18,6 @@
     <item
         android:width="55dp"
         android:height="55dp"
-        android:drawable="@drawable/brand_mark_white"
+        android:drawable="@drawable/brand_mark_purple"
         android:gravity="center" />
 </layer-list>

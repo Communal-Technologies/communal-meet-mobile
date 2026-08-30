@@ -13,14 +13,14 @@ class ConversationsState {
     this.loading = true,
     this.refreshing = false,
     this.error = '',
-    this.offline = false,
+    this.trouble = Trouble.failed,
   });
 
   final List<Conversation> items;
   final bool loading;
   final bool refreshing;
   final String error;
-  final bool offline;
+  final Trouble trouble;
 
   bool get isEmpty => items.isEmpty;
 
@@ -29,13 +29,13 @@ class ConversationsState {
     bool? loading,
     bool? refreshing,
     String? error,
-    bool? offline,
+    Trouble? trouble,
   }) => ConversationsState(
     items: items ?? this.items,
     loading: loading ?? this.loading,
     refreshing: refreshing ?? this.refreshing,
     error: error ?? this.error,
-    offline: offline ?? this.offline,
+    trouble: trouble ?? this.trouble,
   );
 }
 
@@ -85,7 +85,7 @@ class ConversationsCubit extends Cubit<ConversationsState> {
           loading: false,
           refreshing: false,
           error: state.items.isEmpty ? e.message : '',
-          offline: e.isOffline,
+          trouble: e.trouble,
         ),
       );
     }

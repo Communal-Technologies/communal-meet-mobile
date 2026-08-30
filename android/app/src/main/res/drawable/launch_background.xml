@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The window Android paints before Flutter's first frame. It is the brand purple
-     so the cold start runs straight into the Dart splash instead of flashing white
-     on the way. -->
+<!-- The window Android paints before Flutter's first frame. It is the same white the
+     Dart splash draws, so the cold start runs straight into it instead of flashing a
+     second colour on the way. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/brand_purple" />
+    <item android:drawable="@color/launch_ground" />
 </layer-list>

@@ -3,25 +3,60 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../core/config.dart';
+import '../core/reachability.dart';
 import 'session_store.dart';
 
+/// Why a request came back with nothing useful, in the three shapes a member can do
+/// something about.
+///
+/// The distinction the app used to be missing is the middle one. A request that gets no
+/// response says only that it did not arrive, and that happens both when the phone has
+/// no network and when the network it has does not carry us — so "you are offline" was
+/// being shown to people with four bars of signal, sending them to fix a phone that was
+/// not broken. The second case is ours, and the copy has to say so.
+enum Trouble {
+  /// It reached us and we answered badly, or not usefully.
+  failed,
+
+  /// The phone has a network and it did not reach Communal.
+  unreachable,
+
+  /// The phone reports no wifi and no mobile data. The only case in which "you are
+  /// offline" is a true sentence.
+  offline,
+}
+
 class ApiException implements Exception {
-  ApiException(this.statusCode, this.message);
+  ApiException(this.statusCode, this.message, {this.hasTransport = true});
 
   final int? statusCode;
   final String message;
+
+  /// What the phone reported about its own network at the moment this failed. Only
+  /// meaningful when [isOffline] — a 500 arrived, so plainly there was a network.
+  final bool hasTransport;
 
   bool get isOffline => statusCode == null;
   bool get isUnauthorized => statusCode == 401;
   bool get isForbidden => statusCode == 403;
   bool get isNotFound => statusCode == 404;
 
+  Trouble get trouble => !isOffline
+      ? Trouble.failed
+      : hasTransport
+      ? Trouble.unreachable
+      : Trouble.offline;
+
   @override
   String toString() => message;
 }
 
 class ApiClient {
-  ApiClient({required this.session, required this.onSessionLost}) {
+  ApiClient({
+    required this.session,
+    required this.onSessionLost,
+    required this.reach,
+  }) {
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.requireBaseUrl(),
@@ -70,6 +105,7 @@ class ApiClient {
   late final Dio dio;
   final SessionStore session;
   final Future<void> Function() onSessionLost;
+  final Reachability reach;
 
   Future<bool>? _inFlightRefresh;
 
@@ -137,7 +173,16 @@ class ApiClient {
         final code = e.response!.statusCode ?? 0;
         throw ApiException(code, _messageFor(code, body));
       }
-      throw ApiException(null, 'No connection.');
+      // Nothing came back at all. Which of the two that was is a question only the
+      // phone can answer, so ask it here, while the failure is still in hand.
+      final hasTransport = reach.hasTransport;
+      throw ApiException(
+        null,
+        hasTransport
+            ? 'You are connected to something, but it is not reaching Communal.'
+            : 'Turn on mobile data or wifi.',
+        hasTransport: hasTransport,
+      );
     }
   }
 
