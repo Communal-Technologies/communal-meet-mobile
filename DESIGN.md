@@ -712,6 +712,20 @@ stable grid.
 leave in `danger`. Always dark. Host extras live under `⋮`: Participants, Record, Mute everyone,
 End meeting for everyone.
 
+**Host mute is a request, and the copy has to be honest about it.** The media manager exposes no
+mute route at all — only admit and kick — so meetsvc verifies that the caller really hosts the
+meeting and then puts a `host.mute` frame into the room, and the named client mutes itself. Every
+Communal client obeys, which covers the case this exists for: a member who left their microphone
+open. So **the participant sheet shows "Asked to mute", not a muted glyph**, until that member's
+own mic state actually comes back off the SFU — a glyph flipped optimistically would tell a
+president somebody had been silenced when the frame may not have landed. "Mute everyone" reports
+"Everyone has been asked to mute". The control that does not need the other side's cooperation is
+**Remove**, and it is what the sheet offers next to a member who will not go quiet; if the room has
+emptied in the meantime the mute comes back as "There is no one in the meeting now."
+
+A host's own mic is the exception — that is the local track, muted directly, and it shows as muted
+immediately.
+
 **Recording** starts and does not stop. The media manager exposes no egress-stop route, so a
 recording ends when the room empties; the button therefore reports "This meeting is being
 recorded. It will be saved when the meeting ends" instead of offering a stop that would silently
