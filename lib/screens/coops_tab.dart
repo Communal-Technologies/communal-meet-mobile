@@ -31,7 +31,7 @@ class CoopsTab extends StatelessWidget {
           return const EmptyState(
             asset: 'empty_coops.svg',
             title: 'You are not in a cooperative yet',
-            body: 'Join one in the Communal app and its group chat and '
+            body: 'Join one in the Wallet app and its group chat and '
                 'meetings appear here.',
           );
         }

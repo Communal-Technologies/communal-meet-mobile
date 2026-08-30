@@ -73,7 +73,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!check.hasPassword || check.needsOtp) {
       setState(
         () => _error =
-            'This account has no PIN yet. Set one in the Communal app, '
+            'This account has no PIN yet. Set one in the Wallet app, '
             'then sign in here.',
       );
       return;
@@ -226,7 +226,7 @@ class _SignInScreenState extends State<SignInScreen> {
             'has on file.';
       case _Step.pin:
         return 'The same ${AppConfig.pinLength}-digit PIN you use on '
-            'Communal.';
+            'Wallet.';
       case _Step.takeover:
         return 'Signing in here ends your session on the other device.';
     }
