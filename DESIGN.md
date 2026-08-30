@@ -739,25 +739,36 @@ stable grid.
 leave in `danger`. Always dark. Host extras live under `⋮`: Participants, Record, Mute everyone,
 End meeting for everyone.
 
-**Host mute is a request, and the copy has to be honest about it.** The media manager exposes no
-mute route at all — only admit and kick — so meetsvc verifies that the caller really hosts the
-meeting and then puts a `host.mute` frame into the room, and the named client mutes itself. Every
-Communal client obeys, which covers the case this exists for: a member who left their microphone
-open. So **the participant sheet shows "Asked to mute", not a muted glyph**, until that member's
-own mic state actually comes back off the SFU — a glyph flipped optimistically would tell a
-president somebody had been silenced when the frame may not have landed. "Mute everyone" reports
-"Everyone has been asked to mute". The control that does not need the other side's cooperation is
-**Remove**, and it is what the sheet offers next to a member who will not go quiet; if the room has
-emptied in the meantime the mute comes back as "There is no one in the meeting now."
+**Host mute is enforced, and the copy takes its words from `enforced`.** The platform stops
+forwarding that member's microphone to everybody and to the recorder, so it holds whatever their
+phone does — the sheet shows **a muted glyph and "Muted"**, and the room hears the effect before
+the roster redraws. The mute is *also* announced into the room, because the SFU tells a device its
+track was stopped and cannot tell it by whom: the muted member sees "You were muted by Ada
+Nwosu", not a microphone that closed on its own. "Mute everyone" reports "Everyone is muted", and
+spares the host — there is no unmute, so a chair who muted themselves would have to leave and
+rejoin to speak again.
 
-A host's own mic is the exception — that is the local track, muted directly, and it shows as muted
-immediately.
+**There is no unmute anywhere in this app**, and that is not an omission to be filled in later. A
+host may stop a microphone being heard; only its owner may turn it back on. A muted member's own
+mic button is live and unchanged — they tap it and they are back.
 
-**Recording** starts and does not stop. The media manager exposes no egress-stop route, so a
-recording ends when the room empties; the button therefore reports "This meeting is being
-recorded. It will be saved when the meeting ends" instead of offering a stop that would silently
-do nothing. Everyone sees the `REC` dot and gets a one-time system line in the in-call chat, and
-the group chat gets one afterwards. Nobody is recorded without being told.
+`enforced: false` is the one case that goes back to the old wording. A media-manager build that
+predates the mute route makes meetsvc fall back to asking the room, and then — and only then — the
+sheet reads **"Asked to mute"** with no glyph, because the microphone may still be open. The app
+must branch on the response field and never on which it expects; **Remove** is what the sheet
+offers next to a member who will not go quiet. An empty room comes back as "There is no one in the
+meeting now.", and a member who left in the meantime as "They have already left the meeting."
+
+A host's own mic is the local track, muted directly, and it shows as muted immediately.
+
+**Recording** starts and stops. `Record` is a toggle and its state comes from `meeting.recording` —
+*not* `recording_enabled`, which stays true once a meeting has ever been recorded and would leave
+the button stuck on. Stopping finalises the file; what was recorded is kept, and the sheet says so:
+"Recording stopped. What was recorded is saved." Deleting a recording is not on this toggle. If the
+platform build cannot stop one the 422 sentence is shown as it arrives — the recording is still
+running, and a host must not be told otherwise. Everyone sees the `REC` dot and gets a one-time
+system line in the in-call chat, and the group chat gets one afterwards. Nobody is recorded without
+being told, and nobody is left believing a recording stopped when it did not.
 
 **Admission (host).** A card at the bottom of the stage, above the control bar — not a modal. A
 knock arrives mid-sentence, and a dialog that steals focus to announce somebody who is not in the
