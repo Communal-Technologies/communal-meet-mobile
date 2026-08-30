@@ -34,7 +34,7 @@ class MeetApp extends StatelessWidget {
       child: BlocProvider(
         create: (_) => SessionCubit(services)..bootstrap(),
         child: MaterialApp(
-          title: 'Communal Meet',
+          title: 'Meet',
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(),
           home: const _Gate(),
