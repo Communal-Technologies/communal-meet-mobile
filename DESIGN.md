@@ -170,14 +170,20 @@ that nobody asks to turn it off. The grammar is Google Meet's because it is alre
 **join** is two ascending notes (arrival, resolved); **knock** is one note struck twice
 (repetition is what a knock is, and it is unresolved on purpose because someone is waiting).
 
-Unlike the browser client, these are three bundled ~4KB `.ogg` assets rather than synthesised
-tones: Flutter has no Web Audio equivalent, and a Dart oscillator would cost more than the files.
+Unlike the browser client, these are bundled files rather than tones synthesised at play time:
+Flutter has no Web Audio equivalent, and a Dart oscillator would cost more than the assets. They
+are still *synthesised*, just ahead of time, by `tool/make_sounds.py` — see §9.
 
 | Sound | When | Suppressed when |
 |---|---|---|
-| `join.ogg` | someone enters the meeting | more than 8 already in, or your mic is hot |
-| `knock.ogg` | someone knocks (host only) | never — it is the whole point |
-| `ringback.ogg` | your outgoing 1:1 call is ringing | — |
+| `join.wav` | someone enters the meeting | more than 8 already in, or your mic is hot |
+| `knock.wav` | someone knocks (host only) | never — it is the whole point |
+| `ringback.wav` | your outgoing 1:1 call is ringing | — |
+
+`join` is E5 then B5, a rising fifth; `knock` is D5 twice at the same pitch, so it resolves
+nowhere; `ringback` is 400Hz and 450Hz together on the double-ring cadence Nigerian networks
+inherited from NITEL's UK practice — 0.4s on, 0.2s off, 0.4s on, 2s silent — because a ringback
+that sounds like an American single ring sounds like a wrong number.
 
 The incoming ring is **not** ours: CallKit and the Android telecom UI own it, so the phone rings
 the way that phone rings.
@@ -750,7 +756,7 @@ equal tile because in a call there is always a subject. With 3–8 in a small gr
 strip of the others sits above the PiP, which is how the phone apps do it.
 
 **Outgoing.** Placed from a DM header or the Calls tab. The screen shows the callee's avatar,
-name, "Calling…", `ringback.ogg`, and one red decline. After 45 seconds with no answer: "No
+name, "Calling…", `ringback.wav`, and one red decline. After 45 seconds with no answer: "No
 answer", the call is marked missed, and a `call_event` line lands in the DM.
 
 **Incoming.** CallKit on iOS and the telecom UI on Android own the ring; that is what wakes a
@@ -958,22 +964,61 @@ secrets — adding env-scoped `ANDROID_*` silently shadows it.
 | Schedule / meet | `GET|POST /meetings`, `POST /meetings/{id}/join|end`, lobby, host controls, recording | ◻ step 4 |
 | Calls | `POST /calls`, `POST /calls/{id}/accept|decline|end`, `GET /calls/recent` | ◻ step 7 |
 
-## 9. Assets a designer still has to hand over
+## 9. The assets
 
-Everything above can be built from tokens and Flutter's own icons. These cannot:
+All of them are in `assets/`, all authored here, and all reproducible from the two scripts in
+`tool/` — `assets/README.md` is the provenance record. Nothing is downloaded: a free icon set or
+a stock illustration carries a licence and an attribution obligation into a fintech app's store
+listing, and the four things needed here are small enough that authoring them is cheaper than
+reading someone else's terms.
 
-1. **The app mark** — launcher icon and the sign-in lockup. The fleet's convention is one
-   Communal mark on a white ground, tinted per app (member purple, collector black), so Meet
-   needs its tint decided and the foreground exported at 1024². Invented here would be a brand
-   decision made by the wrong person.
-2. **The waiting-room illustration** — a looping, low-motion drawing, ~240dp tall, legible on
-   `#0B0B0F`. Motion is what says the wait is live, so it cannot be a static PNG.
-3. **Three sounds** — `join.ogg`, `knock.ogg`, `ringback.ogg`, each under 6KB, mixed quiet.
-4. **Empty-state glyph set** — five line drawings (no chats, no cooperatives, no calls, offline,
-   error) in one stroke weight.
+**The launcher icon is the fleet's own mark, not a new one.** The member app and the collector app
+ship the same Communal mark and differ only in tint — collector's `pubspec.yaml` says why outright:
+"the two apps sit next to each other in the drawer and the purple one is the member's". Meet is the
+third icon in that drawer, so it takes the same mark and **inverts the ground**: white knocked out
+of `#742CE7`, rather than adding a fourth tint on white. At 48dp an inverted ground is the only one
+of the three you can identify without resolving the mark itself. The mask is lifted from the member
+app's own PNG alpha, so the geometry and framing match the fleet by construction rather than by
+eye.
 
-Until they exist the app builds with Material icons and no illustration, and nothing below §9 is
-blocked.
+| Asset | What it is |
+|---|---|
+| `images/launcher_icon.png` | 1024², white mark full-bleed on `#742CE7` — iOS and legacy Android |
+| `images/launcher_icon_foreground.png` | 1024², white mark, transparent, inset to Android's adaptive safe zone |
+| `images/mark_purple.png` | 1024², the purple mark on transparent — in-app lockups |
+| `images/splash_logo.png` | 512², purple mark cropped to the ink and re-padded, for the white splash |
+| `images/notification_icon.png` | 96², white silhouette — Android tints this itself |
+| `images/waiting_room.svg` | 240×200 door, frame, handle, and the light spilling under it |
+| `images/waiting_room_ripple.svg` | one 20-unit arc, centred on its own origin |
+| `images/empty_{chats,coops,calls}.svg` | 48², stroke 2.5, `currentColor` |
+| `images/state_{offline,error}.svg` | same grid and weight |
+| `sounds/{join,knock,ringback}.wav` | 16kHz mono 16-bit; 8.8KB, 10.2KB, 93.8KB |
+
+**The waiting room animates by composition, not by file.** `flutter_svg` draws an SVG statically,
+so an illustration with motion baked into one file would be a file nobody can animate. Instead the
+door is static and the ripple is a separate single-arc asset, positioned so its origin sits on the
+door's right edge at `(156, 104)` in the door's coordinate space, drawn **three times** in a
+`Stack` and animated on a 2.4s loop staggered 0.8s apart: `scale` 1.0 → 2.4 with `easeOut`,
+`opacity` 0.55 → 0. The ripple's viewBox is symmetric about its own origin (`-60 -60 120 120`)
+precisely so `Transform.scale` needs no alignment arithmetic. Three expanding arcs from a closed
+door is a knock nobody has answered yet, which is the screen's whole message, and it reuses the
+mark's concentric-arc language rather than inventing a second visual idiom.
+
+**The sounds are WAV, not the `.ogg` §3.7 first assumed** — this machine has no vorbis encoder and
+`audioplayers` plays WAV on both platforms. `ringback.wav` is 94KB because its two seconds of
+silence have to live in the file for the double-ring cadence to survive looping; the two UI tones
+are under 11KB each. Peak amplitudes are 0.21, 0.23 and 0.30 of full scale — quiet by construction,
+which is the one property every free notification sound on the internet lacks.
+
+**What I could not check**: I cannot listen to the WAVs. They are verified structurally — correct
+rate and depth, first and last sample at zero, no sample-to-sample discontinuity beyond the
+waveform's own slope, so there is no click at either edge — but whether the join tone is *pleasant*
+is a judgement someone has to make with their ears, at which point `tool/make_sounds.py` is four
+frequency constants to change. The SVGs I did check by eye, with `tool/preview_svg.py`.
+
+Still genuinely open, and cosmetic: the sign-in screen's wordmark is set in Inter rather than the
+fleet's logotype, because `mobile/assets/images/logo-01.png` is a 3429×1273 lockup whose type I
+cannot identify from the raster. Swapping it in later is one `Image.asset`.
 
 ## 10. Deliberately not designed
 
