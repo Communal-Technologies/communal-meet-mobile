@@ -1,0 +1,59 @@
+name: communal_meet
+description: "Conferences and chat between a cooperative and its members."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # The fleet's set, same major versions as collector_mobile.
+  dio: ^5.9.2
+  flutter_bloc: ^9.1.1
+  flutter_secure_storage: ^9.2.4
+  google_fonts: ^6.3.3
+  flutter_screenutil: ^5.9.3
+  connectivity_plus: ^7.1.1
+  intl: ^0.20.3
+
+  # Meet's own: the chat socket, the outbox and cache, retry-safe send ids, and
+  # the empty-state glyphs.
+  web_socket_channel: ^3.0.3
+  sqflite: ^2.4.1
+  uuid: ^4.5.3
+  flutter_svg: ^2.2.4
+
+  # livekit_client, firebase_messaging, flutter_callkit_incoming, wakelock_plus,
+  # permission_handler and audioplayers arrive with the meeting and call screens
+  # (PLAN.md steps 6 and 7). Adding them now would make every build depend on a
+  # google-services.json that does not exist yet, for screens that are not built.
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
+
+# The same mark as the member and collector apps, with the ground inverted:
+# white on #742CE7, because Meet is the third Communal icon in the same drawer.
+# Regenerate with: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/launcher_icon.png"
+  background_color_android: "#742CE7"
+  adaptive_icon_background: "#742CE7"
+  adaptive_icon_foreground: "assets/images/launcher_icon_foreground.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/sounds/

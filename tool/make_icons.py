@@ -63,6 +63,18 @@ canvas = Image.new("RGBA", (side + 2 * pad, side + 2 * pad), (0, 0, 0, 0))
 canvas.paste(art, (pad + (side - art.width) // 2, pad + (side - art.height) // 2))
 canvas.resize((512, 512), Image.LANCZOS).save("assets/images/splash_logo.png")
 
+# The white mark Android 12+ centres on the launch window, ink-cropped for the
+# same reason: res/drawable/splash_mark.xml carries the padding itself, in dp, so
+# the size on screen is set there and not by however this file was framed.
+white = paint(adaptive, WHITE, (0, 0, 0, 0))
+art = white.crop(white.getbbox())
+side = max(art.size)
+square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+square.paste(art, ((side - art.width) // 2, (side - art.height) // 2))
+square.resize((1024, 1024), Image.LANCZOS).save(
+    "android/app/src/main/res/drawable-nodpi/brand_mark_white.png"
+)
+
 for name in (
     "launcher_icon.png",
     "launcher_icon_foreground.png",

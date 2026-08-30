@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The mark Android 12+ centres on the launch window: the white mark straight onto
+     the brand purple, with no plate behind it, so no icon mask is applied and the
+     launch window draws exactly what the Dart splash draws.
+     The transparent canvas is the padding. The platform crops to the middle 192 of
+     the 288dp canvas and scales that back up, so what lands on screen is half again
+     the dp declared here — 66dp measures the same as the member app's mark, which
+     declares nothing and takes the platform's own size. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <size android:width="288dp" android:height="288dp" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    <item
+        android:width="66dp"
+        android:height="66dp"
+        android:drawable="@drawable/brand_mark_white"
+        android:gravity="center" />
+</layer-list>
