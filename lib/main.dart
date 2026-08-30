@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/app_update.dart';
 import 'core/theme.dart';
 import 'screens/home_shell.dart';
 import 'screens/sign_in.dart';
@@ -62,7 +63,7 @@ class _Gate extends StatelessWidget {
           case SessionStatus.signedOut:
             return SignInScreen(notice: state.notice);
           case SessionStatus.signedIn:
-            return const HomeShell();
+            return const AppUpdateWatcher(child: HomeShell());
         }
       },
     );
