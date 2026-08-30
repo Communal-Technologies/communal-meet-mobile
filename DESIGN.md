@@ -1029,14 +1029,14 @@ invitees, in-app recording playback, a call from the lock screen without CallKit
 beyond "the phone layout, wider", and dark mode for the light chrome — the stage is already dark
 and a dark chat list is a preference, not a need, in v1.
 
-## 11. Two decisions that are the user's, not mine
+## 11. Two decisions that were the user's, not mine — both answered
 
-Neither blocks building; both change one screen if answered the other way.
+Answered 2026-08-30; both confirm the defaults below, so nothing in §6.8 or §6.9 changes.
 
-- **Whose call is the group meeting's lobby?** §6.9 defaults it **off** for a cooperative's own
-  meeting, on the argument that everyone in the room is already a verified member and an officer
-  should not have to admit sixteen people they know. A cooperative that wants an AGM gated would
-  want the opposite default.
-- **May a plain member start a meeting?** §6.8 says no — `can_host` gates it, so only
-  administrators see the button. If two members should be able to meet without an officer, that
-  is a backend authorisation change as well as a button.
+- **Whose call is the group meeting's lobby?** **Off** for a cooperative's own meeting (§6.9).
+  Everyone in the room is already a verified member of that cooperative, and an officer should not
+  have to admit sixteen people they know by name. A host can still turn it on per meeting — the
+  decision is the default, not the capability.
+- **May a plain member start a meeting?** **No — administrators only** (§6.8). `can_host` gates
+  the button in the app, and the same rule is enforced server-side on `POST /meetings`, because a
+  hidden button is not an authorisation check.
