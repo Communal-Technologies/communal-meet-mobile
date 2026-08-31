@@ -50,3 +50,6 @@ app.*.map.json
 tool/dart_defines.json
 tool/dart_defines.*.json
 !tool/dart_defines.example.json
+
+# Kotlin build metadata, written by AGP 8.x
+android/.kotlin/

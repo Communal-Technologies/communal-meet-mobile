@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Same as drawable/launch_background.xml. The v21 copy exists because Flutter's
-     template points the launch theme here on API 21+, and the stock version deferred
-     to ?android:colorBackground — which is white, or black in dark mode. -->
+<!--
+  The window Android paints before any Dart runs, and again in the moment between the
+  system splash screen leaving and Flutter's first frame arriving. It was the flat colour
+  on its own, which is why a cold start looked like it had no splash at all: the branded
+  part could not appear until the whole engine was up.
+
+  The mark is drawn at the size values-v31 draws it, so the handover is the wordmark
+  arriving underneath a mark that has not moved.
+
+  Two copies of this file: minSdk is 24, so this -v21 one is the copy every device
+  resolves and drawable/ is never read. They are kept identical anyway.
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_ground" />
+    <item
+        android:width="55dp"
+        android:height="55dp"
+        android:gravity="center"
+        android:drawable="@drawable/brand_mark_purple" />
 </layer-list>

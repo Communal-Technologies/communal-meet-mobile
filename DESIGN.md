@@ -310,6 +310,26 @@ was a screen nobody could see: purple on a purple launch window, held for one fr
 - Hard rule: the splash never waits on `/spaces` or `/conversations`. Home renders from cache and
   fills in.
 
+**Revised again, from a device: the splash cannot be the first thing that runs, so it must not be
+the first thing the launch depends on.** This section was written as though a cold start begins at
+the splash. It does not. It begins at a window Android paints with no Dart in it at all, and on a
+mid-range handset that window is up for over three seconds. Two rules came out of finding the app
+stuck on it (W94):
+
+- **Nothing is awaited before `runApp`.** The keystore, the database and the connectivity plugin
+  are opened from behind the splash, not in front of it. An await above `runApp` is time nothing can
+  be drawn during, and a *throw* above `runApp` is an app with no interface whatsoever — which is
+  precisely what a build with no `BASE_URL` produced: the launch window, indefinitely, in silence.
+  A boot that fails now lands on this screen with a sentence on it.
+- **The launch window carries the mark**, at the 55dp `values-v31` draws it at, so the branded part
+  of a cold start starts at millisecond zero and the splash proper is the wordmark arriving under a
+  mark that has not moved. The 1200ms floor is measured from the first frame and spans the boot,
+  rather than being added to it.
+
+And the splash's floor is a floor, not a budget: the one request it genuinely cannot proceed without
+gets **5 seconds**, not Dio's 12, because past that a member is looking at a hang. The request is
+left running — a late success still takes them through.
+
 ### 6.1 Sign in
 
 One account, the Communal one. A member signs in with the phone number or email they already

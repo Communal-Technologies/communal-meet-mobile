@@ -35,13 +35,14 @@ class AppServices {
   final _sessionLost = StreamController<void>.broadcast();
   Stream<void> get sessionLost => _sessionLost.stream;
 
+  /// The three cold platform channels a launch cannot start without — the keystore, the
+  /// database file and the connectivity plugin — and not one of them needs another's
+  /// answer. Run one after another they were most of the wait before the first frame.
   static Future<AppServices> boot() async {
     final session = SessionStore();
-    await session.load();
     final store = LocalStore();
-    await store.open();
     final reach = Reachability();
-    await reach.start();
+    await Future.wait([session.load(), store.open(), reach.start()]);
     return AppServices._(session, store, reach);
   }
 

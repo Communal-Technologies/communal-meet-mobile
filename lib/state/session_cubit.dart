@@ -54,6 +54,17 @@ class SessionCubit extends Cubit<SessionState> {
   final AppServices services;
   late final StreamSubscription<void> _lost;
 
+  /// How long the splash waits on the one request a launch cannot go on without before it
+  /// stops looking like a launch and starts looking like a hang.
+  ///
+  /// Only reached when there is no cached caller, because with one the app is already at
+  /// Home while this runs. Without one there is nothing to draw until it answers, and the
+  /// request's own patience is twelve seconds — twelve seconds of splash with no sentence
+  /// on it whenever we are the ones who are down.
+  static const _launchPatience = Duration(seconds: 5);
+
+  Timer? _launch;
+
   Future<void> bootstrap() async {
     if (!services.session.hasSession) {
       emit(const SessionState(status: SessionStatus.signedOut));
@@ -63,8 +74,26 @@ class SessionCubit extends Cubit<SessionState> {
     if (cached != null) {
       emit(SessionState(status: SessionStatus.signedIn, caller: cached));
       services.socket.start();
+      await refreshCaller(silent: true);
+      return;
     }
-    await refreshCaller(silent: cached != null);
+
+    final probe = refreshCaller();
+    // The probe is left running rather than abandoned: it still emits signedIn if it
+    // lands after this, and a member reading the sentence is then simply taken past it.
+    _launch = Timer(_launchPatience, () {
+      if (isClosed || state.status != SessionStatus.unknown) return;
+      emit(
+        SessionState(
+          status: SessionStatus.unreachable,
+          trouble: services.reach.hasTransport
+              ? Trouble.unreachable
+              : Trouble.offline,
+        ),
+      );
+    });
+    await probe;
+    _launch?.cancel();
   }
 
   Future<void> refreshCaller({bool silent = false}) async {
@@ -110,6 +139,7 @@ class SessionCubit extends Cubit<SessionState> {
 
   @override
   Future<void> close() async {
+    _launch?.cancel();
     await _lost.cancel();
     return super.close();
   }
