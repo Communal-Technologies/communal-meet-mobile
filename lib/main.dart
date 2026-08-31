@@ -21,6 +21,7 @@ Future<void> main() async {
       statusBarBrightness: Brightness.light,
     ),
   );
+  await SystemChrome.setPreferredOrientations(const [DeviceOrientation.portraitUp]);
   final services = await AppServices.boot();
   runApp(MeetApp(services: services));
 }
