@@ -26,16 +26,17 @@ class MeetingScreen extends StatelessWidget {
     required this.ticket,
     required this.prepared,
     required this.coopName,
-    this.chat,
+    this.hasChat = false,
   });
 
   final JoinTicket ticket;
   final PreparedMedia prepared;
   final String coopName;
 
-  /// The cooperative's group chat, carried through so the summary can offer it — the
-  /// thing people do after a meeting is talk about it.
-  final Conversation? chat;
+  /// Whether the cooperative has a group chat, so the summary can offer it — the thing
+  /// people do after a meeting is talk about it. Opening it is the cooperative's job;
+  /// this route cannot reach the conversations cubit.
+  final bool hasChat;
 
   @override
   Widget build(BuildContext context) {
@@ -45,16 +46,16 @@ class MeetingScreen extends StatelessWidget {
         ticket: ticket,
         prepared: prepared,
       )..connect(),
-      child: _MeetingView(coopName: coopName, chat: chat),
+      child: _MeetingView(coopName: coopName, hasChat: hasChat),
     );
   }
 }
 
 class _MeetingView extends StatefulWidget {
-  const _MeetingView({required this.coopName, this.chat});
+  const _MeetingView({required this.coopName, required this.hasChat});
 
   final String coopName;
-  final Conversation? chat;
+  final bool hasChat;
 
   @override
   State<_MeetingView> createState() => _MeetingViewState();
@@ -104,18 +105,20 @@ class _MeetingViewState extends State<_MeetingView> {
     }
   }
 
-  void _onOver(MeetingState state) {
+  Future<void> _onOver(MeetingState state) async {
     if (_left) return;
     _left = true;
 
     // A refusal and a failed join both belong back where they started, with a sentence
-    // and no retry button — a retry on a denial is an invitation to knock again.
+    // and no retry button — a retry on a denial is an invitation to knock again. There
+    // is nothing to summarise either: nobody was in a meeting.
     if (state.phase == MeetingPhase.denied ||
         state.phase == MeetingPhase.failed) {
-      Navigator.of(context).pop(state.message);
+      Navigator.of(context).pop(MeetingExit(message: state.message));
       return;
     }
-    Navigator.of(context).pushReplacement(
+
+    final exit = await Navigator.of(context).push<MeetingExit>(
       MaterialPageRoute(
         builder: (_) => MeetingSummaryScreen(
           meeting: state.meeting,
@@ -124,11 +127,13 @@ class _MeetingViewState extends State<_MeetingView> {
           duration: state.connectedAt == null
               ? null
               : DateTime.now().difference(state.connectedAt!),
-          chat: widget.chat,
+          hasChat: widget.hasChat,
           wasHost: state.canHost,
         ),
       ),
     );
+    if (!mounted) return;
+    Navigator.of(context).pop(exit ?? const MeetingExit());
   }
 
   // ── the controls ───────────────────────────────────────────────────────────

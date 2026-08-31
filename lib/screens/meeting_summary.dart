@@ -5,10 +5,10 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../data/api_client.dart';
 import '../data/models.dart';
+import '../state/meeting_cubit.dart' show MeetingExit;
 import '../state/services.dart';
 import '../widgets/participant_tile.dart';
 import 'meeting.dart' show elapsedLabel;
-import 'thread.dart';
 
 /// What happened, after the meeting. It replaces the stage rather than sitting on top of
 /// it, so back from here goes to the cooperative and never rejoins.
@@ -20,7 +20,7 @@ class MeetingSummaryScreen extends StatefulWidget {
     required this.message,
     required this.duration,
     required this.wasHost,
-    this.chat,
+    this.hasChat = false,
   });
 
   final MeetingSummary meeting;
@@ -32,7 +32,7 @@ class MeetingSummaryScreen extends StatefulWidget {
 
   final Duration? duration;
   final bool wasHost;
-  final Conversation? chat;
+  final bool hasChat;
 
   @override
   State<MeetingSummaryScreen> createState() => _MeetingSummaryScreenState();
@@ -106,22 +106,19 @@ class _MeetingSummaryScreenState extends State<MeetingSummaryScreen> {
               Expanded(child: _roster()),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () =>
+                    Navigator.of(context).pop(const MeetingExit()),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                 ),
                 child: const Text('Done'),
               ),
-              if (widget.chat != null) ...[
+              if (widget.hasChat) ...[
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => ThreadScreen(conversation: widget.chat!),
-                      ),
-                    );
-                  },
+                  onPressed: () => Navigator.of(context).pop(
+                    const MeetingExit(openChat: true),
+                  ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
                   ),

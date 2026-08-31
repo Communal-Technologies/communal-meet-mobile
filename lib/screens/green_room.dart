@@ -8,7 +8,6 @@ import '../data/api_client.dart';
 import '../data/models.dart';
 import '../state/meeting_cubit.dart';
 import '../state/services.dart';
-import '../state/spaces_cubit.dart';
 import '../widgets/participant_tile.dart';
 import 'meeting.dart';
 
@@ -200,21 +199,18 @@ class _GreenRoomScreenState extends State<GreenRoomScreen> {
       _audio = null;
       _video = null;
 
-      final message = await Navigator.of(context).push<String>(
+      final exit = await Navigator.of(context).push<MeetingExit>(
         MaterialPageRoute(
           builder: (_) => MeetingScreen(
             ticket: ticket,
             prepared: prepared,
             coopName: widget.space.cooperativeName,
-            chat: widget.space.conversation,
+            hasChat: widget.space.conversation != null,
           ),
         ),
       );
       if (!mounted) return;
-      // A cooperative's card shows what is live in it, and this member just changed
-      // that either way.
-      context.read<SpacesCubit>().load();
-      Navigator.of(context).pop(message);
+      Navigator.of(context).pop(exit ?? const MeetingExit());
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {

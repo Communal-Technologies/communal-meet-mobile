@@ -5,6 +5,7 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../data/models.dart';
 import '../state/conversations_cubit.dart';
+import '../state/meeting_cubit.dart' show MeetingExit;
 import '../state/spaces_cubit.dart';
 import '../widgets/states.dart';
 import 'chats_tab.dart';
@@ -181,13 +182,27 @@ class _SpaceCard extends StatelessWidget {
     }
     if (!context.mounted) return;
 
-    final message = await Navigator.of(context).push<String>(
+    final spaces = context.read<SpacesCubit>();
+    final exit = await Navigator.of(context).push<MeetingExit>(
       MaterialPageRoute(
         builder: (_) => GreenRoomScreen(space: space, meeting: live),
       ),
     );
-    if (message == null || message.isEmpty || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    // This card shows what is live in the cooperative, and this member just changed
+    // that either way.
+    spaces.load();
+    if (exit == null || !context.mounted) return;
+
+    if (exit.message.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(exit.message)),
+      );
+    }
+    // Answered here rather than on the summary, because the group chat is opened with
+    // the conversations cubit and only this side of the navigator can see it.
+    if (exit.openChat && space.conversation != null) {
+      _openGroup(context, space);
+    }
   }
 }
 

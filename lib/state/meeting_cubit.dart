@@ -145,6 +145,24 @@ class PreparedMedia {
   }
 }
 
+/// What the meeting hands back to the cooperative it was opened from.
+///
+/// Four routes deep — cooperative, green room, meeting, summary — and each one pops
+/// with its child's result rather than replacing it. `pushReplacement` completes the
+/// replaced route's future, which would have the green room popping the summary the
+/// instant it appeared.
+class MeetingExit {
+  const MeetingExit({this.message = '', this.openChat = false});
+
+  /// Why it ended, when it was not the member's own choice. Shown by whoever is left
+  /// standing, because a denial has to land somewhere a person is looking.
+  final String message;
+
+  /// The summary's second action. It is answered where the cooperative's chat lives,
+  /// not from a route that cannot reach it.
+  final bool openChat;
+}
+
 /// Sentinel for a copyWith that has to be able to set a nullable field back to null —
 /// the screen share, which ends.
 const Object _keep = Object();
