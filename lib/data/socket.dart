@@ -96,6 +96,11 @@ class MeetSocket {
         ApiPaths.socket(AppConfig.requireBaseUrl(), token),
       );
       _channel = channel;
+      // `ready` carries the same failure the stream does, and nobody awaits it — so a
+      // refused connection is an unhandled exception per attempt, forever, at the retry
+      // interval. It is answered by [_onClosed] below; this only stops it being reported
+      // twice, the second time as a crash. A dead meetsvc filled a log with these.
+      unawaited(channel.ready.catchError((Object _) {}));
       _sub = channel.stream.listen(
         _onData,
         onError: (_) => _onClosed(),
