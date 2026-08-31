@@ -217,30 +217,209 @@ class Message {
 class MeetingSummary {
   const MeetingSummary({
     required this.id,
+    required this.code,
+    required this.cooperativeId,
     required this.title,
+    required this.style,
     required this.status,
+    required this.hostProfileId,
     required this.hostName,
+    required this.lobbyEnabled,
+    required this.recordingEnabled,
+    required this.recording,
     required this.participantCount,
     required this.scheduledFor,
     required this.startedAt,
+    required this.endedAt,
   });
 
   final String id;
+  final String code;
+  final String cooperativeId;
   final String title;
+  final String style;
   final String status;
+  final String hostProfileId;
   final String hostName;
+  final bool lobbyEnabled;
+
+  /// Whether this meeting has ever been recorded. It stays true afterwards, so it
+  /// answers "is there a recording of this" and never "is one running".
+  final bool recordingEnabled;
+
+  /// Whether a recording is running right now. This is the one the host's Record
+  /// toggle reads; [recordingEnabled] would leave it stuck on for ever.
+  final bool recording;
+
   final int participantCount;
   final DateTime? scheduledFor;
   final DateTime? startedAt;
+  final DateTime? endedAt;
+
+  bool get isLive => status == 'live';
+  bool get hasEnded => status == 'ended';
+  bool get isCall => style == 'call';
+  String get displayTitle => title.isEmpty ? 'Meeting' : title;
 
   factory MeetingSummary.fromJson(Map<String, dynamic> json) => MeetingSummary(
     id: _str(json['id']),
+    code: _str(json['code']),
+    cooperativeId: _str(json['cooperative_id']),
     title: _str(json['title']),
+    style: _str(json['style']).isEmpty ? 'meeting' : _str(json['style']),
     status: _str(json['status']),
+    hostProfileId: _str(json['host_profile_id']),
     hostName: _str(json['host_name']),
+    lobbyEnabled: _bool(json['lobby_enabled']),
+    recordingEnabled: _bool(json['recording_enabled']),
+    recording: _bool(json['recording']),
     participantCount: _int(json['participant_count']),
     scheduledFor: _date(json['scheduled_for']),
     startedAt: _date(json['started_at']),
+    endedAt: _date(json['ended_at']),
+  );
+}
+
+/// One ICE server as the platform issued it, for the identity that is about to
+/// join. The app neither chooses these nor keeps them: they are minted per join
+/// and the relay usage bills against the merchant app they came from.
+class IceServer {
+  const IceServer({
+    required this.urls,
+    required this.username,
+    required this.credential,
+  });
+
+  final List<String> urls;
+  final String username;
+  final String credential;
+
+  factory IceServer.fromJson(Map<String, dynamic> json) {
+    final urls = json['urls'];
+    return IceServer(
+      urls: urls is List
+          ? urls.map((e) => e.toString()).toList()
+          : [_str(urls)].where((e) => e.isNotEmpty).toList(),
+      username: _str(json['username']),
+      credential: _str(json['credential']),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'urls': urls,
+    if (username.isNotEmpty) 'username': username,
+    if (credential.isNotEmpty) 'credential': credential,
+  };
+}
+
+/// Everything the phone needs to join, and nothing more. The room name, the
+/// identity and the SFU address are all the backend's to decide — a client that
+/// could name its own room could name another merchant's.
+class JoinTicket {
+  const JoinTicket({
+    required this.meeting,
+    required this.token,
+    required this.livekitUrl,
+    required this.room,
+    required this.identity,
+    required this.role,
+    required this.canHost,
+    required this.iceServers,
+  });
+
+  final MeetingSummary meeting;
+  final String token;
+  final String livekitUrl;
+  final String room;
+  final String identity;
+  final String role;
+  final bool canHost;
+  final List<IceServer> iceServers;
+
+  /// A lobby token publishes nothing until a host admits its holder.
+  bool get isKnocking => role == 'lobby';
+
+  factory JoinTicket.fromJson(Map<String, dynamic> json) => JoinTicket(
+    meeting: MeetingSummary.fromJson(
+      ((json['meeting'] as Map?) ?? const {}).cast<String, dynamic>(),
+    ),
+    token: _str(json['token']),
+    livekitUrl: _str(json['livekit_url']),
+    room: _str(json['room']),
+    identity: _str(json['identity']),
+    role: _str(json['role']),
+    canHost: _bool(json['can_host']),
+    iceServers: ((json['ice_servers'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => IceServer.fromJson(e.cast<String, dynamic>()))
+        .toList(),
+  );
+}
+
+/// One person's presence in a meeting: the host's participant sheet while it
+/// runs, and the attendance record after it.
+class MeetingAttendee {
+  const MeetingAttendee({
+    required this.profileId,
+    required this.name,
+    required this.avatar,
+    required this.role,
+    required this.present,
+    required this.waiting,
+    required this.joinedAt,
+    required this.leftAt,
+  });
+
+  final String profileId;
+  final String name;
+  final String avatar;
+  final String role;
+  final bool present;
+  final bool waiting;
+  final DateTime? joinedAt;
+  final DateTime? leftAt;
+
+  factory MeetingAttendee.fromJson(Map<String, dynamic> json) =>
+      MeetingAttendee(
+        profileId: _str(json['profile_id']),
+        name: _str(json['name']),
+        avatar: _str(json['avatar']),
+        role: _str(json['role']),
+        present: _bool(json['present']),
+        waiting: _bool(json['waiting']),
+        joinedAt: _date(json['joined_at']),
+        leftAt: _date(json['left_at']),
+      );
+}
+
+/// What a mute did.
+///
+/// [enforced] is the field that decides the words on the screen. True means the
+/// platform stopped forwarding those tracks and it holds whatever the muted phone
+/// does; false means a cooperating client was asked and may not have complied.
+/// Read it — never infer it from [tracks], which is legitimately zero for somebody
+/// who had published nothing.
+class MuteOutcome {
+  const MuteOutcome({
+    required this.enforced,
+    required this.tracks,
+    required this.alreadyMuted,
+    required this.people,
+    required this.failed,
+  });
+
+  final bool enforced;
+  final int tracks;
+  final int alreadyMuted;
+  final int people;
+  final int failed;
+
+  factory MuteOutcome.fromJson(Map<String, dynamic> json) => MuteOutcome(
+    enforced: _bool(json['enforced']),
+    tracks: _int(json['tracks']),
+    alreadyMuted: _int(json['already_muted']),
+    people: _int(json['people']),
+    failed: _int(json['failed']),
   );
 }
 

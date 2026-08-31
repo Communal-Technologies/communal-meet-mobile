@@ -51,6 +51,28 @@ class ApiPaths {
       '$meetV1/conversations/$id/participants';
   static String presence(String id) => '$meetV1/conversations/$id/presence';
 
+  static const String meetings = '$meetV1/meetings';
+  static const String meetingLookup = '$meetV1/meetings/lookup';
+
+  static String meetingJoin(String id) => '$meetings/$id/join';
+  static String meetingLeave(String id) => '$meetings/$id/leave';
+  static String meetingEnd(String id) => '$meetings/$id/end';
+  static String meetingParticipants(String id) => '$meetings/$id/participants';
+  static String meetingLobby(String id) => '$meetings/$id/lobby';
+  static String meetingAdmit(String id, String profileId) =>
+      '$meetings/$id/lobby/$profileId/admit';
+  static String meetingDeny(String id, String profileId) =>
+      '$meetings/$id/lobby/$profileId/deny';
+  // Everybody, and one person: the same route with and without a profile id, so
+  // the two are the same authorisation and the same reply shape.
+  static String meetingMuteAll(String id) => '$meetings/$id/participants/mute';
+  static String meetingMute(String id, String profileId) =>
+      '$meetings/$id/participants/$profileId/mute';
+  static String meetingRemove(String id, String profileId) =>
+      '$meetings/$id/participants/$profileId/remove';
+  static String recordingStart(String id) => '$meetings/$id/recording/start';
+  static String recordingStop(String id) => '$meetings/$id/recording/stop';
+
   static Uri socket(String base, String token) {
     final http = Uri.parse('$base$meetV1/ws');
     return http.replace(

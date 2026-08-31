@@ -8,6 +8,7 @@ import '../state/conversations_cubit.dart';
 import '../state/spaces_cubit.dart';
 import '../widgets/states.dart';
 import 'chats_tab.dart';
+import 'green_room.dart';
 
 class CoopsTab extends StatelessWidget {
   const CoopsTab({super.key});
@@ -134,17 +135,22 @@ class _SpaceCard extends StatelessWidget {
                     label: const Text('Group chat'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => _notYet(context),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
+                // A member with nothing to join gets no button at all: only the
+                // cooperative's administrators start meetings, and a control that
+                // always refuses is worse than no control.
+                if (live != null || space.canHost) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _meet(context, live),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                      icon: const Icon(Icons.videocam_outlined, size: 18),
+                      label: Text(live != null ? 'Join' : 'Meet'),
                     ),
-                    icon: const Icon(Icons.videocam_outlined, size: 18),
-                    label: Text(live != null ? 'Join' : 'Meet'),
                   ),
-                ),
+                ],
               ],
             ),
           ],
@@ -162,10 +168,67 @@ class _SpaceCard extends StatelessWidget {
     openThread(context, known ?? ref);
   }
 
-  void _notYet(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Meetings arrive in the next build of this app.'),
+  Future<void> _meet(BuildContext context, MeetingSummary? live) async {
+    // Above the interactive ceiling the host hears it before the meeting starts, not
+    // from members who cannot get in. Joining one that is already running is fine —
+    // whoever is in is in.
+    if (live == null && space.memberCount > kMeetingCeiling) {
+      final go = await showModalBottomSheet<bool>(
+        context: context,
+        builder: (_) => const _CeilingWarning(),
+      );
+      if (go != true) return;
+    }
+    if (!context.mounted) return;
+
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => GreenRoomScreen(space: space, meeting: live),
+      ),
+    );
+    if (message == null || message.isEmpty || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// The SFU's interactive ceiling — `connectra_plus`. Above this a cooperative needs
+/// livestream mode, which is not in this version.
+const int kMeetingCeiling = 200;
+
+class _CeilingWarning extends StatelessWidget {
+  const _CeilingWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('This meeting will not hold everyone', style: AppText.title),
+            const SizedBox(height: 8),
+            Text(
+              'This cooperative has more members than a single meeting can hold '
+              '($kMeetingCeiling). Members beyond that will not be able to join.',
+              style: AppText.meta,
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
+              child: const Text('Start anyway'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
       ),
     );
   }

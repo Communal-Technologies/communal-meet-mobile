@@ -18,6 +18,7 @@ class AppServices {
     auth = AuthRepository(api);
     chat = ChatRepository(api);
     meet = MeetRepository(api);
+    meetings = MeetingsRepository(api);
   }
 
   final SessionStore session;
@@ -29,6 +30,7 @@ class AppServices {
   late final AuthRepository auth;
   late final ChatRepository chat;
   late final MeetRepository meet;
+  late final MeetingsRepository meetings;
 
   final _sessionLost = StreamController<void>.broadcast();
   Stream<void> get sessionLost => _sessionLost.stream;

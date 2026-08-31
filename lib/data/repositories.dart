@@ -122,6 +122,124 @@ class MeetRepository {
   }
 }
 
+class MeetingsRepository {
+  MeetingsRepository(this.api);
+
+  final ApiClient api;
+
+  Future<List<MeetingSummary>> forCooperative(
+    String cooperativeId, {
+    int limit = 20,
+  }) async {
+    final body = await api.get(
+      ApiPaths.meetings,
+      query: {'cooperative': cooperativeId, 'limit': limit},
+    );
+    return ((body['meetings'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => MeetingSummary.fromJson(e.cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Opens a meeting now, or schedules one. [scheduledFor] is wall-clock text in
+  /// the cooperative's own time — 'YYYY-MM-DD HH:MM', not an ISO instant — because
+  /// that is what the backend stores and compares verbatim.
+  Future<MeetingSummary> create({
+    required String cooperativeId,
+    String title = '',
+    bool? lobbyEnabled,
+    bool recordingEnabled = false,
+    String scheduledFor = '',
+  }) async {
+    final body = await api.post(
+      ApiPaths.meetings,
+      body: {
+        'cooperative_id': cooperativeId,
+        'title': title,
+        if (lobbyEnabled != null) 'lobby_enabled': lobbyEnabled,
+        'recording_enabled': recordingEnabled,
+        if (scheduledFor.isNotEmpty) 'scheduled_for': scheduledFor,
+      },
+    );
+    return _meeting(body);
+  }
+
+  Future<MeetingSummary> byCode(String code) async {
+    final body = await api.get(ApiPaths.meetingLookup, query: {'code': code});
+    return _meeting(body);
+  }
+
+  Future<JoinTicket> join(String meetingId) async =>
+      JoinTicket.fromJson(await api.post(ApiPaths.meetingJoin(meetingId)));
+
+  Future<void> leave(String meetingId) async {
+    await api.post(ApiPaths.meetingLeave(meetingId));
+  }
+
+  Future<MeetingSummary> end(String meetingId) async =>
+      _meeting(await api.post(ApiPaths.meetingEnd(meetingId)));
+
+  Future<List<MeetingAttendee>> participants(String meetingId) async {
+    final body = await api.get(ApiPaths.meetingParticipants(meetingId));
+    return ((body['participants'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => MeetingAttendee.fromJson(e.cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<List<MeetingAttendee>> lobby(String meetingId) async {
+    final body = await api.get(ApiPaths.meetingLobby(meetingId));
+    return ((body['waiting'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => MeetingAttendee.fromJson(e.cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> decideAdmission(
+    String meetingId,
+    String profileId, {
+    required bool admit,
+  }) async {
+    await api.post(
+      admit
+          ? ApiPaths.meetingAdmit(meetingId, profileId)
+          : ApiPaths.meetingDeny(meetingId, profileId),
+    );
+  }
+
+  /// Mutes one person, or everybody when [profileId] is empty. There is no
+  /// unmute: a host may stop a microphone being heard, and turning one back on
+  /// belongs to its owner.
+  Future<MuteOutcome> mute(String meetingId, {String profileId = ''}) async {
+    final body = await api.post(
+      profileId.isEmpty
+          ? ApiPaths.meetingMuteAll(meetingId)
+          : ApiPaths.meetingMute(meetingId, profileId),
+    );
+    return MuteOutcome.fromJson(body);
+  }
+
+  Future<void> remove(String meetingId, String profileId) async {
+    await api.post(ApiPaths.meetingRemove(meetingId, profileId));
+  }
+
+  Future<MeetingSummary> setRecording(String meetingId, bool on) async =>
+      _meeting(
+        await api.post(
+          on
+              ? ApiPaths.recordingStart(meetingId)
+              : ApiPaths.recordingStop(meetingId),
+        ),
+      );
+
+  static MeetingSummary _meeting(Map<String, dynamic> body) {
+    final nested = body['meeting'];
+    return MeetingSummary.fromJson(
+      nested is Map ? nested.cast<String, dynamic>() : body,
+    );
+  }
+}
+
 class ChatRepository {
   ChatRepository(this.api);
 

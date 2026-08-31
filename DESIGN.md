@@ -659,8 +659,8 @@ The screen before the meeting. See yourself, choose your devices, then join.
 │ └────────────────────────────────────────┘ │
 │  4 others are here                          │
 │                                            │
-│  Microphone   Built-in ▾                    │
-│  Camera       Front ▾                       │
+│  Camera       Front  ▸                      │
+│  Sound        Speaker ▸                     │
 │                                            │
 │  ┌────────────────────────────────────┐    │
 │  │             Join now               │    │
@@ -671,8 +671,15 @@ The screen before the meeting. See yourself, choose your devices, then join.
 The self-view is the largest thing on screen because looking at it *is* the task, and it sits on
 the same near-black stage the meeting uses so that arriving is not a jolt. The mic and camera
 toggles are pills **on** the video, because they change what the video shows and belong where the
-result is visible; the device pickers stay in the column below, because choosing a microphone
-from a list is a form interaction, not a live one.
+result is visible; the two settings stay in the column below, because choosing a device is a form
+interaction, not a live one.
+
+**Revised while building: there is no microphone picker.** A phone has one microphone as far as
+the platform is concerned — `selectAudioInput` is a desktop capability, and a picker listing a
+single entry is a control that does nothing. What a person on a handset actually wants to choose
+is the camera (front or back) and where the sound comes out (speaker or earpiece), so those are
+the two rows. Both are live: they act on the prepared tracks and the audio route immediately, and
+the choice carries into the meeting.
 
 The button says **"Join now"** or **"Ask to join"**, and which one is the only warning a person
 gets that pressing it leads to a wait. While the answer is still unknown it is disabled with a
@@ -720,7 +727,7 @@ retry button on a denial is an invitation to knock again.
 │ └────────────────┘ └────────────────┘      │
 │                  ● ○                        │
 ├────────────────────────────────────────────┤
-│   🎤     📹     🖥     💬②    ☎           │
+│   🎤     📹     🖥     ✋    💬②    ☎      │
 └────────────────────────────────────────────┘
 ```
 
@@ -735,9 +742,25 @@ Paging is horizontal swipe with dots. The local participant is pinned to page 1.
 speaker is pulled to page 1 if they are not on it — being told who is talking matters more than a
 stable grid.
 
-**Control bar.** Mic, camera, screen share (`meeting` style only), chat with an unread badge,
-leave in `danger`. Always dark. Host extras live under `⋮`: Participants, Record, Mute everyone,
-End meeting for everyone.
+**Control bar.** Mic, camera, screen share (`meeting` style only), raise hand, chat with an unread
+badge, leave in `danger`. Always dark. Host extras live under `⋮`: Participants, Record, Mute
+everyone, End meeting for everyone.
+
+**Raise hand** was in the plan and missing from this document; it is in the bar, not under `⋮`,
+because in an AGM asking to speak is something a member does constantly and a chair needs to see
+it without opening anything. It is a `{"type":"hand","up":…}` data frame with a hand badge on
+the raiser's tile, so it costs no route and works for a browser client that ignores it. Nothing
+lowers it but the raiser, and it lowers itself when they leave. A hand is a request and not a
+queue: it says who is waiting, not in what order — ordering an AGM's speaking list is a governance
+question and is not in v1.
+
+**Screen share (Android)** cannot be started from Dart alone. `MediaProjection` requires the
+system capture consent dialog *and* a running foreground service of type `mediaProjection`, so the
+share button asks for capture permission, starts that service — which posts its own notification,
+"Sharing your screen · Everyone in the meeting can see this phone." — and only then publishes. The
+service stops when the share does, and again on leaving, because a notification that outlives the
+meeting reads as a phone still broadcasting. A refusal at either step says "This phone would not
+let us share its screen." and the meeting carries on.
 
 **Host mute is enforced, and the copy takes its words from `enforced`.** The platform stops
 forwarding that member's microphone to everybody and to the recorder, so it holds whatever their

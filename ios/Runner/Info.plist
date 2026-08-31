@@ -26,6 +26,16 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Meet uses your camera so the others in the meeting can see you.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Meet uses your microphone so the others in the meeting can hear you.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<!-- A meeting keeps its audio when the phone is locked or the app is put
+		     away. Without this iOS suspends the app and the room hears silence. -->
+		<string>audio</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
