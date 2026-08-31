@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
   static const String env = String.fromEnvironment(
     'APP_ENV',
@@ -5,12 +7,23 @@ class AppConfig {
   );
   static const String baseUrl = String.fromEnvironment('BASE_URL');
 
+  /// Set by tests only, and null in every build.
+  ///
+  /// [baseUrl] is a compile-time constant, so without this a test cannot construct
+  /// anything that builds an `ApiClient` — which is `AppServices`, which is the whole boot
+  /// path. That is why the wiring had no test to its name until two defects came out of
+  /// it. The alternative was a `--dart-define` on every `flutter test` invocation, and an
+  /// undocumented `--dart-define` is what caused the first of those two defects.
+  @visibleForTesting
+  static String? testBaseUrl;
+
   static const int pinLength = 6;
   static const String platform = 'mobile_app';
 
   static bool get isDevelopment => env == 'development';
 
   static String requireBaseUrl() {
+    final baseUrl = testBaseUrl ?? AppConfig.baseUrl;
     if (baseUrl.isEmpty) {
       throw StateError(
         'BASE_URL is not set. Run with '

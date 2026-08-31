@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../core/reachability.dart';
 import '../data/api_client.dart';
 import '../data/local_store.dart';
@@ -45,6 +47,15 @@ class AppServices {
     await Future.wait([session.load(), store.open(), reach.start()]);
     return AppServices._(session, store, reach);
   }
+
+  /// Assembled but never opened — no keystore read, no database file, no connectivity
+  /// plugin. It exists so a widget test can be handed the thing [MeetApp] provides
+  /// without a device under it. Both defects W94 was opened for were in that wiring and
+  /// neither could be reached from a test, which is the gap this closes: `hasSession` is
+  /// false on an unloaded store, so a tree built on this settles on the sign-in screen.
+  @visibleForTesting
+  factory AppServices.unopened() =>
+      AppServices._(SessionStore(), LocalStore(), Reachability());
 
   Future<void> _onSessionLost() async {
     socket.stop();
