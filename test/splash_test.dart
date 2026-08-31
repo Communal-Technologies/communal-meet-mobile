@@ -25,6 +25,36 @@ void main() {
       });
     }
 
+    /// A burst of screenshots off the handset caught this screen with its mark and its
+    /// wordmark centred on x=230 of a 720px display, 130px left of where they belong. The
+    /// widget tree cannot do that — a centred `Column` inside symmetric padding has no
+    /// left bias — so the suspicion was a frame captured mid window-animation, before the
+    /// surface had settled at its final width. This says which: if the tree is honest the
+    /// test passes and the photograph was the lie.
+    testWidgets('mark and wordmark sit on the horizontal centre', (tester) async {
+      tester.view
+        ..physicalSize = const Size(720, 1612)
+        ..devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(_app(const SplashScreen()));
+      await tester.pump(const Duration(milliseconds: 700));
+
+      final centre = tester.view.physicalSize.width / 2;
+      final ink = <String, Finder>{
+        'the mark': find.byType(Image),
+        'the wordmark': find.text('Communal Meet'),
+        'the strapline': find.text('Meet your cooperative'),
+      };
+      for (final entry in ink.entries) {
+        expect(
+          tester.getCenter(entry.value).dx,
+          moreOrLessEquals(centre, epsilon: 1.0),
+          reason: '${entry.key} is off the centre line',
+        );
+      }
+    });
+
     /// Meet is the one of the three that opens white. If this ever goes purple again the
     /// Dart splash becomes the same colour as the launch window Android paints, and a
     /// cold start reads as an app with no splash at all — which is how this screen was

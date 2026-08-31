@@ -74,46 +74,54 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.white,
+        // The Center is load-bearing, and not for centring. Scaffold hands its body
+        // *loose* constraints (0 ≤ w ≤ 720), so SafeArea, Padding and a Column whose
+        // children all have intrinsic widths every one shrink-wrap, and the whole screen
+        // ends up the width of its longest word, at the left edge. Center keeps the
+        // bounded width instead of shrink-wrapping it, which is what puts the mark back
+        // on the middle of the phone.
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/splash_logo.png', width: 116),
-                const SizedBox(height: 20),
-                Text('Communal Meet', style: AppText.display),
-                const SizedBox(height: 6),
-                Text(
-                  'Meet your cooperative',
-                  textAlign: TextAlign.center,
-                  style: AppText.meta,
-                ),
-                const SizedBox(height: 36),
-                if (stuck)
-                  SplashTrouble(
-                    trouble: widget.trouble,
-                    message: widget.message,
-                    onRetry: widget.onRetry!,
-                  )
-                else
-                  SizedBox(
-                    height: 3,
-                    width: 132,
-                    child: AnimatedOpacity(
-                      opacity: _showLoader ? 1 : 0,
-                      duration: const Duration(milliseconds: 220),
-                      child: const ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(2)),
-                        child: LinearProgressIndicator(
-                          minHeight: 3,
-                          backgroundColor: AppColors.primarySoft,
-                          color: AppColors.primary,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset('assets/images/splash_logo.png', width: 116),
+                  const SizedBox(height: 20),
+                  Text('Communal Meet', style: AppText.display),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Meet your cooperative',
+                    textAlign: TextAlign.center,
+                    style: AppText.meta,
+                  ),
+                  const SizedBox(height: 36),
+                  if (stuck)
+                    SplashTrouble(
+                      trouble: widget.trouble,
+                      message: widget.message,
+                      onRetry: widget.onRetry!,
+                    )
+                  else
+                    SizedBox(
+                      height: 3,
+                      width: 132,
+                      child: AnimatedOpacity(
+                        opacity: _showLoader ? 1 : 0,
+                        duration: const Duration(milliseconds: 220),
+                        child: const ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
+                          child: LinearProgressIndicator(
+                            minHeight: 3,
+                            backgroundColor: AppColors.primarySoft,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
