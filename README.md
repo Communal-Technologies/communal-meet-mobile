@@ -42,11 +42,22 @@ flutter run \
   --dart-define=APP_ENV=development \
   --dart-define=BASE_URL=http://$(hostname -I | awk '{print $1}'):8989
 
+# against deployed staging — no wifi in common with this laptop required
+flutter run \
+  --dart-define=APP_ENV=staging \
+  --dart-define=BASE_URL=https://api-staging.communalhq.com
+
 # an APK for a handset that is not on this wifi
 flutter build apk --release \
-  --dart-define=APP_ENV=development \
-  --dart-define=BASE_URL=http://185.113.249.61:8989
+  --dart-define=APP_ENV=staging \
+  --dart-define=BASE_URL=https://api-staging.communalhq.com
 ```
+
+Staging is `communal-meetsvc-staging` on port 8093, behind Apache at
+`api-staging.communalhq.com`. `curl https://api-staging.communalhq.com/api/meet/health` should
+answer `{"broker":"ok","db":"ok",...,"status":"ok"}` before you blame the app — a `db` or
+`broker` leg that is not `ok` is the deploy's problem, not the client's. The member accounts
+there are the staging database's, which are not the production ones.
 
 The dev address has to be the **host's** LAN IP, and this machine's roams — `hostname -I`
 rather than a number typed once and pasted after. `127.0.0.1` is the phone, not the laptop.
