@@ -547,7 +547,7 @@ class MeetingCubit extends Cubit<MeetingState> {
 
     final local = room.localParticipant;
     final everyone = <Participant>[
-      if (local != null) local,
+      ?local,
       ...room.remoteParticipants.values,
     ];
 
