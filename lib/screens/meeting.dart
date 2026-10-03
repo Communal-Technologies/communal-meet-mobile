@@ -193,6 +193,12 @@ class _MeetingViewState extends State<_MeetingView> {
 
   Future<bool> _startCaptureService() async {
     try {
+      // Experimental in livekit_client, and there is no stable alternative:
+      // Android will not hand over a MediaProjection without the system consent
+      // dialog this raises, so screen sharing cannot start without it. Pinned
+      // rather than silenced fleet-wide — if a livekit_client bump removes it,
+      // this line should fail the build and be looked at, not disappear.
+      // ignore: experimental_member_use
       if (!await Hardware.instance.requestCapturePermission()) return false;
       final started = await FlutterBackground.initialize(
         androidConfig: const FlutterBackgroundAndroidConfig(

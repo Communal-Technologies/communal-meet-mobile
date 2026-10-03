@@ -156,7 +156,7 @@ class MeetingsRepository {
       body: {
         'cooperative_id': cooperativeId,
         'title': title,
-        if (lobbyEnabled != null) 'lobby_enabled': lobbyEnabled,
+        'lobby_enabled': ?lobbyEnabled,
         'recording_enabled': recordingEnabled,
         if (scheduledFor.isNotEmpty) 'scheduled_for': scheduledFor,
       },
