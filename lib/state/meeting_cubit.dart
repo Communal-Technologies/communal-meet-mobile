@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -348,30 +349,43 @@ class MeetingCubit extends Cubit<MeetingState> {
     _listener = listener;
     _wire(listener);
 
+    // The ICE servers are the platform's, minted for this identity, and the
+    // reason relay usage bills to the right merchant app. The client chooses
+    // none of them.
+    //
+    // An empty list is not "no preference", it is "no servers": passing an
+    // RTCConfiguration whose iceServers is empty replaces LiveKit's own defaults
+    // with nothing, and a client behind any NAT then has no STUN to learn its
+    // reflexive candidate from, so every join fails on ICE. meetsvc returns an
+    // empty list whenever it cannot mint TURN credentials — by design, because a
+    // relay failure must never deny a meeting — so this is the normal state
+    // during a TURN outage, not an edge case. Leave the configuration alone and
+    // let LiveKit use its defaults.
+    final ice = [
+      for (final server in _ticket.iceServers)
+        RTCIceServer(
+          urls: server.urls,
+          username: server.username,
+          credential: server.credential,
+        ),
+    ];
+
     try {
       await room.connect(
         _ticket.livekitUrl,
         _ticket.token,
-        connectOptions: ConnectOptions(
-          // The ICE servers are the platform's, minted for this identity, and the
-          // reason relay usage bills to the right merchant app. The client chooses
-          // none of them.
-          rtcConfiguration: RTCConfiguration(
-            iceServers: [
-              for (final ice in _ticket.iceServers)
-                RTCIceServer(
-                  urls: ice.urls,
-                  username: ice.username,
-                  credential: ice.credential,
-                ),
-            ],
-          ),
-        ),
+        connectOptions: ice.isEmpty
+            ? const ConnectOptions()
+            : ConnectOptions(rtcConfiguration: RTCConfiguration(iceServers: ice)),
       );
       await WakelockPlus.enable();
-    } catch (_) {
-      // The reason is worth a log and never worth showing: "SignalDisconnected" is
-      // not a sentence a member of a cooperative can act on.
+    } catch (error, stack) {
+      // Never shown — "SignalDisconnected" is not a sentence a member of a
+      // cooperative can act on — but always recorded. This used to be `catch (_)`
+      // with a comment claiming the reason was worth a log, and nothing logged
+      // it, so a failed join on a handset said the same thing whatever the cause
+      // and there was nowhere to start.
+      debugPrint('Meet could not join ${_ticket.livekitUrl}: $error\n$stack');
       _fail('We could not join the meeting. Try again.');
     }
   }
