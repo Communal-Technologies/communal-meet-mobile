@@ -24,6 +24,25 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
 
+    <!-- Play filters its device catalogue on hardware features, and these two are
+         required implicitly rather than because anything asked for them. Left alone
+         Play reports the app as unavailable on devices that do not advertise them,
+         and an install from a test track there fails as an incompatible device.
+
+         screen.portrait: MainActivity declares android:screenOrientation="portrait",
+         which implies the feature. The lock is how we lay the app out, not a hardware
+         need, so the requirement is dropped here rather than by unlocking it.
+
+         bluetooth: BLUETOOTH and BLUETOOTH_ADMIN above each imply it. They are there
+         for flutter_webrtc's audio routing, so a headset is routed to when there is
+         one — a phone without Bluetooth joins a meeting through its own speaker.
+
+         microphone stays required: RECORD_AUDIO implies it and Meet without one is a
+         meeting you can only watch. `aapt2 dump badging` reports the only other
+         implied feature as faketouch, which any touchscreen satisfies. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>
+
     <application
         android:label="Meet"
         android:name="${applicationName}"
