@@ -52,10 +52,11 @@ dependencies:
   # example depends on it for exactly that. Nothing else in the app uses it.
   flutter_background: ^1.3.1
 
-  # firebase_core, firebase_messaging and flutter_callkit_incoming arrive with
-  # 1:1 ringing (PLAN.md step 7). Adding them now would make every build depend
-  # on a google-services.json that does not exist yet, for a screen nothing
-  # reaches.
+  # Push, at the Wallet app's versions. See OUTSTANDING.md W164.
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.1.3
+  device_info_plus: ^12.4.0
+  flutter_callkit_incoming: ^3.1.6
 
 dev_dependencies:
   flutter_test:

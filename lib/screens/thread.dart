@@ -11,6 +11,7 @@ import '../state/thread_cubit.dart';
 import '../widgets/composer.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/states.dart';
+import 'call_launcher.dart';
 import 'conversation_details.dart';
 
 class ThreadScreen extends StatelessWidget {
@@ -113,6 +114,29 @@ class _ThreadViewState extends State<_ThreadView> {
               ),
             ),
             actions: [
+              if (!conversation.isGroup &&
+                  conversation.counterpartProfileId.isNotEmpty) ...[
+                IconButton(
+                  tooltip: 'Voice call',
+                  onPressed: () => placeCall(
+                    context,
+                    profileId: conversation.counterpartProfileId,
+                    name: conversation.counterpartName,
+                    video: false,
+                  ),
+                  icon: const Icon(Icons.call_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Video call',
+                  onPressed: () => placeCall(
+                    context,
+                    profileId: conversation.counterpartProfileId,
+                    name: conversation.counterpartName,
+                    video: true,
+                  ),
+                  icon: const Icon(Icons.videocam_outlined),
+                ),
+              ],
               IconButton(
                 tooltip: conversation.isMuted ? 'Unmute' : 'Mute',
                 onPressed: () => cubit.mute(conversation.isMuted ? 0 : 60 * 8),

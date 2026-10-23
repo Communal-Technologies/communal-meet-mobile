@@ -18,6 +18,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- Screen sharing. Android will not let an app capture the screen without a
          foreground service of this exact type, and from Android 14 the service
          type needs its own permission. -->

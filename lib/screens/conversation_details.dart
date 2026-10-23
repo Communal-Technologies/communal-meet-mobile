@@ -9,6 +9,7 @@ import '../state/conversations_cubit.dart';
 import '../state/services.dart';
 import '../state/thread_cubit.dart';
 import '../widgets/states.dart';
+import 'call_launcher.dart';
 import 'thread.dart';
 
 class ConversationDetailsScreen extends StatefulWidget {
@@ -205,13 +206,31 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
                               : null,
                           trailing: person.profileId == me
                               ? null
-                              : IconButton(
-                                  tooltip: 'Message',
-                                  onPressed: () => _openDm(person),
-                                  icon: const Icon(
-                                    Icons.chat_bubble_outline,
-                                    color: AppColors.primary,
-                                  ),
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Call',
+                                      onPressed: () => placeCall(
+                                        context,
+                                        profileId: person.profileId,
+                                        name: person.name,
+                                        video: false,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.call_outlined,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Message',
+                                      onPressed: () => _openDm(person),
+                                      icon: const Icon(
+                                        Icons.chat_bubble_outline,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                         ),
                     ],

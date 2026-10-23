@@ -35,6 +35,8 @@
 		<!-- A meeting keeps its audio when the phone is locked or the app is put
 		     away. Without this iOS suspends the app and the room hears silence. -->
 		<string>audio</string>
+		<string>remote-notification</string>
+		<string>voip</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

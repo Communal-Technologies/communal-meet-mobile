@@ -20,6 +20,8 @@ class AppConfig {
   static const int pinLength = 6;
   static const String platform = 'mobile_app';
 
+  static const String appKey = 'meet';
+
   static bool get isDevelopment => env == 'development';
 
   static String requireBaseUrl() {
@@ -47,6 +49,7 @@ class ApiPaths {
   static const String takeoverResend =
       '$authV1/login/session-takeover/resend-otp';
   static const String deviceToken = '$authV1/profile/device-token';
+  static const String devices = '$authV1/profile/devices';
 
   static const String me = '$meetV1/me';
   static const String spaces = '$meetV1/spaces';
@@ -63,6 +66,13 @@ class ApiPaths {
   static String participants(String id) =>
       '$meetV1/conversations/$id/participants';
   static String presence(String id) => '$meetV1/conversations/$id/presence';
+
+  static const String calls = '$meetV1/calls';
+  static const String recentCalls = '$meetV1/calls/recent';
+
+  static String callAccept(String id) => '$calls/$id/accept';
+  static String callDecline(String id) => '$calls/$id/decline';
+  static String callEnd(String id) => '$calls/$id/end';
 
   static const String meetings = '$meetV1/meetings';
   static const String meetingLookup = '$meetV1/meetings/lookup';

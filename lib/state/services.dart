@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/push.dart';
 import '../core/reachability.dart';
 import '../data/api_client.dart';
 import '../data/local_store.dart';
@@ -21,6 +22,8 @@ class AppServices {
     chat = ChatRepository(api);
     meet = MeetRepository(api);
     meetings = MeetingsRepository(api);
+    calls = CallsRepository(api);
+    push = PushService(auth, calls);
   }
 
   final SessionStore session;
@@ -33,6 +36,8 @@ class AppServices {
   late final ChatRepository chat;
   late final MeetRepository meet;
   late final MeetingsRepository meetings;
+  late final CallsRepository calls;
+  late final PushService push;
 
   final _sessionLost = StreamController<void>.broadcast();
   Stream<void> get sessionLost => _sessionLost.stream;
@@ -45,7 +50,9 @@ class AppServices {
     final store = LocalStore();
     final reach = Reachability();
     await Future.wait([session.load(), store.open(), reach.start()]);
-    return AppServices._(session, store, reach);
+    final services = AppServices._(session, store, reach);
+    services.push.start();
+    return services;
   }
 
   /// Assembled but never opened — no keystore read, no database file, no connectivity
@@ -68,5 +75,10 @@ class AppServices {
     socket.stop();
     await session.clear();
     await store.wipe();
+  }
+
+  /// Registers this install against the member who has just signed in.
+  void enrolForPush() {
+    push.enrol();
   }
 }
