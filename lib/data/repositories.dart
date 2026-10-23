@@ -60,11 +60,7 @@ class AuthRepository {
   Future<SignInResult> signIn(String login, String pin) async {
     final body = await api.post(
       ApiPaths.login,
-      body: {
-        'login': login,
-        'password': pin,
-        'platform': AppConfig.platform,
-      },
+      body: {'login': login, 'password': pin, 'platform': AppConfig.platform},
       skipAuth: true,
     );
     return SignInResult(
@@ -96,6 +92,32 @@ class AuthRepository {
     );
   }
 
+  /// Registers this install for push and returns the member's reachable apps.
+  Future<List<String>> registerDevice({
+    required String token,
+    required String deviceId,
+    required String platform,
+    String appVersion = '',
+    String voipToken = '',
+  }) async {
+    final body = await api.post(
+      ApiPaths.devices,
+      body: {
+        'app': AppConfig.appKey,
+        'fcm_token': token,
+        if (deviceId.isNotEmpty) 'device_id': deviceId,
+        'platform': platform,
+        if (appVersion.isNotEmpty) 'app_version': appVersion,
+        if (voipToken.isNotEmpty) 'voip_token': voipToken,
+      },
+    );
+    final apps = body['registered_apps'];
+    if (apps is List) {
+      return apps.map((a) => a.toString()).toList(growable: false);
+    }
+    return const [];
+  }
+
   Future<String> resendTakeoverOtp(String challengeId) async {
     final body = await api.post(
       ApiPaths.takeoverResend,
@@ -118,6 +140,45 @@ class MeetRepository {
     return ((body['spaces'] as List?) ?? const [])
         .whereType<Map>()
         .map((e) => Space.fromJson(e.cast<String, dynamic>()))
+        .toList();
+  }
+}
+
+class CallsRepository {
+  CallsRepository(this.api);
+
+  final ApiClient api;
+
+  Future<CallTicket> place(String profileId, {required bool video}) async {
+    final body = await api.post(
+      ApiPaths.calls,
+      body: {'profile_id': profileId, 'video': video},
+    );
+    return CallTicket.fromJson(body);
+  }
+
+  Future<CallTicket> accept(String callId) async {
+    final body = await api.post(ApiPaths.callAccept(callId));
+    return CallTicket.fromJson(body);
+  }
+
+  Future<CallRecord> decline(String callId) =>
+      _finish(ApiPaths.callDecline(callId));
+
+  Future<CallRecord> end(String callId) => _finish(ApiPaths.callEnd(callId));
+
+  Future<CallRecord> _finish(String path) async {
+    final body = await api.post(path);
+    return CallRecord.fromJson(
+      ((body['call'] as Map?) ?? const {}).cast<String, dynamic>(),
+    );
+  }
+
+  Future<List<CallRecord>> recent() async {
+    final body = await api.get(ApiPaths.recentCalls);
+    return ((body['calls'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => CallRecord.fromJson(e.cast<String, dynamic>()))
         .toList();
   }
 }

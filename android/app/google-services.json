@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "211611281359",
+    "project_id": "communal-cdd13",
+    "storage_bucket": "communal-cdd13.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211611281359:android:13ce2afda58e87ada8d4ba",
+        "android_client_info": {
+          "package_name": "com.communal.meet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9fYjrwXAcaX9gE4iaAAqbsuxBOmlS0-8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211611281359:android:6273d3a399d5f3baa8d4ba",
+        "android_client_info": {
+          "package_name": "com.example.communal_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9fYjrwXAcaX9gE4iaAAqbsuxBOmlS0-8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211611281359:android:b020f28b0883be4ca8d4ba",
+        "android_client_info": {
+          "package_name": "elite.codec.communal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9fYjrwXAcaX9gE4iaAAqbsuxBOmlS0-8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

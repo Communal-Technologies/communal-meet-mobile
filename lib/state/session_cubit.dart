@@ -40,7 +40,7 @@ class SessionState {
 
 class SessionCubit extends Cubit<SessionState> {
   SessionCubit(this.services)
-      : super(const SessionState(status: SessionStatus.unknown)) {
+    : super(const SessionState(status: SessionStatus.unknown)) {
     _lost = services.sessionLost.listen((_) {
       emit(
         const SessionState(
@@ -74,6 +74,7 @@ class SessionCubit extends Cubit<SessionState> {
     if (cached != null) {
       emit(SessionState(status: SessionStatus.signedIn, caller: cached));
       services.socket.start();
+      services.enrolForPush();
       await refreshCaller(silent: true);
       return;
     }
@@ -102,6 +103,7 @@ class SessionCubit extends Cubit<SessionState> {
       await services.session.saveCaller(caller);
       emit(SessionState(status: SessionStatus.signedIn, caller: caller));
       services.socket.start();
+      services.enrolForPush();
     } on ApiException catch (e) {
       if (e.isUnauthorized || e.isForbidden) {
         await signOut();

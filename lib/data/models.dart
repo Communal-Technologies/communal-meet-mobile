@@ -356,6 +356,108 @@ class JoinTicket {
   );
 }
 
+/// One 1:1 call, as a history row or an incoming ring.
+class CallRecord {
+  const CallRecord({
+    required this.id,
+    required this.callerProfileId,
+    required this.callerName,
+    required this.callerAvatar,
+    required this.calleeProfileId,
+    required this.calleeName,
+    required this.calleeAvatar,
+    required this.cooperativeId,
+    required this.video,
+    required this.status,
+    required this.startedAt,
+    required this.answeredAt,
+    required this.endedAt,
+  });
+
+  final String id;
+  final String callerProfileId;
+  final String callerName;
+  final String callerAvatar;
+  final String calleeProfileId;
+  final String calleeName;
+  final String calleeAvatar;
+  final String cooperativeId;
+  final bool video;
+  final String status;
+  final DateTime? startedAt;
+  final DateTime? answeredAt;
+  final DateTime? endedAt;
+
+  bool get isRinging => status == 'ringing';
+  bool get isLive => status == 'ringing' || status == 'accepted';
+  bool get wasAnswered => answeredAt != null;
+
+  /// Whether this person placed the call, which decides the arrow on a history
+  /// row and who may decline.
+  bool placedBy(String profileId) => callerProfileId == profileId;
+
+  String otherName(String profileId) =>
+      placedBy(profileId) ? calleeName : callerName;
+
+  String otherAvatar(String profileId) =>
+      placedBy(profileId) ? calleeAvatar : callerAvatar;
+
+  String otherProfileId(String profileId) =>
+      placedBy(profileId) ? calleeProfileId : callerProfileId;
+
+  factory CallRecord.fromJson(Map<String, dynamic> json) => CallRecord(
+    id: _str(json['id']),
+    callerProfileId: _str(json['caller_profile_id']),
+    callerName: _str(json['caller_name']),
+    callerAvatar: _str(json['caller_avatar']),
+    calleeProfileId: _str(json['callee_profile_id']),
+    calleeName: _str(json['callee_name']),
+    calleeAvatar: _str(json['callee_avatar']),
+    cooperativeId: _str(json['cooperative_id']),
+    video: _bool(json['video']),
+    status: _str(json['status']),
+    startedAt: _date(json['started_at']),
+    answeredAt: _date(json['answered_at']),
+    endedAt: _date(json['ended_at']),
+  );
+}
+
+/// What a party to a call needs to reach its room.
+class CallTicket {
+  const CallTicket({
+    required this.call,
+    required this.token,
+    required this.livekitUrl,
+    required this.room,
+    required this.identity,
+    required this.iceServers,
+    required this.ringSeconds,
+  });
+
+  final CallRecord call;
+  final String token;
+  final String livekitUrl;
+  final String room;
+  final String identity;
+  final List<IceServer> iceServers;
+  final int ringSeconds;
+
+  factory CallTicket.fromJson(Map<String, dynamic> json) => CallTicket(
+    call: CallRecord.fromJson(
+      ((json['call'] as Map?) ?? const {}).cast<String, dynamic>(),
+    ),
+    token: _str(json['token']),
+    livekitUrl: _str(json['livekit_url']),
+    room: _str(json['room']),
+    identity: _str(json['identity']),
+    iceServers: ((json['ice_servers'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => IceServer.fromJson(e.cast<String, dynamic>()))
+        .toList(),
+    ringSeconds: _int(json['ring_seconds']),
+  );
+}
+
 /// One person's presence in a meeting: the host's participant sheet while it
 /// runs, and the attendance record after it.
 class MeetingAttendee {

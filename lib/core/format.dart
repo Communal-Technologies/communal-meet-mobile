@@ -59,5 +59,14 @@ bool sameDay(DateTime a, DateTime b) {
   return x.year == y.year && x.month == y.month && x.day == y.day;
 }
 
+/// A running call's length, as a call screen shows it.
+String callDuration(int seconds) {
+  final minutes = seconds ~/ 60;
+  final rest = (seconds % 60).toString().padLeft(2, '0');
+  if (minutes < 60) return '$minutes:$rest';
+  final hours = minutes ~/ 60;
+  return '$hours:${(minutes % 60).toString().padLeft(2, '0')}:$rest';
+}
+
 String countLabel(int n, String one, String many) =>
     '$n ${n == 1 ? one : many}';
