@@ -1,7 +1,7 @@
 name: communal_meet
 description: "Conferences and chat between a cooperative and its members."
 publish_to: 'none'
-version: 0.1.2
+version: 0.1.3
 
 environment:
   sdk: ^3.11.4
