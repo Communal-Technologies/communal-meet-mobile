@@ -144,6 +144,7 @@ class CallCubit extends Cubit<CallState> {
       ..on<ParticipantConnectedEvent>((_) => _adoptRemote())
       ..on<ParticipantDisconnectedEvent>((_) {
         if (state.phase == CallPhase.live) {
+          unawaited(_endOnServer());
           _settle(CallPhase.ended, 'Call ended.');
         } else {
           _adoptRemote();
@@ -151,9 +152,10 @@ class CallCubit extends Cubit<CallState> {
       })
       ..on<TrackSubscribedEvent>((_) => _adoptRemote())
       ..on<TrackUnsubscribedEvent>((_) => _adoptRemote())
-      ..on<RoomDisconnectedEvent>(
-        (_) => _settle(CallPhase.ended, 'Call ended.'),
-      );
+      ..on<RoomDisconnectedEvent>((_) {
+        unawaited(_endOnServer());
+        _settle(CallPhase.ended, 'Call ended.');
+      });
   }
 
   void _adoptRemote() {
@@ -227,6 +229,16 @@ class CallCubit extends Cubit<CallState> {
 
   /// Hangs up, and ends the call on the backend.
   Future<void> hangUp() async {
+    await _endOnServer();
+    _settle(CallPhase.ended, 'Call ended.');
+  }
+
+  /// Tells the backend this call is over, once.
+  ///
+  /// Called from every way a call can finish, not only the End button: a row
+  /// left behind as `accepted` is read as the member still being busy, and
+  /// refuses every later call to or from either party.
+  Future<void> _endOnServer() async {
     if (_finished) return;
     _finished = true;
     try {
@@ -234,7 +246,6 @@ class CallCubit extends Cubit<CallState> {
     } catch (e) {
       debugPrint('Meet could not end the call cleanly: $e');
     }
-    _settle(CallPhase.ended, 'Call ended.');
   }
 
   void _settle(CallPhase phase, String notice) {
@@ -247,6 +258,7 @@ class CallCubit extends Cubit<CallState> {
 
   @override
   Future<void> close() async {
+    await _endOnServer();
     Sounds.stopRingback();
     _clock?.cancel();
     await _frames?.cancel();
